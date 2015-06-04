@@ -189,6 +189,9 @@
 % A position for the focus at an index or at the ends.
 -type position() :: maybe( index() ).
 
+% A predicate function used for filtering and searching.
+-type predicate(A) :: fun( (A)->boolean() ).
+
 % ===================================================
 % Type utilities
 % ===================================================
@@ -421,10 +424,8 @@ find( D, Val, Z ) -> find( D, Val, move(D,Z) ).
 % If the search does not find the value,
 % then it returns `endr' or `endl'.
 
--spec finds( direction(), [A,...], yazl(A) ) -> maybe(yazl(A)).
+-spec finds( direction(), [A], yazl(A) ) -> maybe(yazl(A)).
 
-finds( r, [], Z ) -> endr;
-finds( l, [], Z ) -> endl;
 finds( r, Vs=[V|VT], Z ) ->
   case find(r,V,Z) of
     endr -> endr;
@@ -438,7 +439,7 @@ finds( l, Vs, Z ) -> findsl( lists:reverse(Vs), Z ).
 
 % private
 
--spec findsl( [A,...], yazl(A) ) -> maybe(yazl(A)).
+-spec findsl( [A], yazl(A) ) -> maybe(yazl(A)).
 
 findsl( Vs=[V|VT], Z ) ->
   case find(l,V,Z) of
@@ -460,7 +461,7 @@ findsl( Vs=[V|VT], Z ) ->
 % Note this is equivalent to `movewhile' 
 % using the negation of the predicate. 
 
--spec moveuntil( direction(), fun((A)->boolean()), yazl(A) ) -> maybe(yazl(A)).
+-spec moveuntil( direction(), predicate(A), yazl(A) ) -> maybe(yazl(A)).
 
 moveuntil( r, _, { _,[]} ) -> endr;
 moveuntil( l, _, {[],_ } ) -> endl;
@@ -485,7 +486,7 @@ moveuntil( l, Pred, Z={[LH|_],_} ) ->
 % Note this is equivalent to `moveuntil' 
 % using the negation of the predicate. 
 
--spec movewhile( direction(), fun((A)->boolean()), yazl(A) ) -> maybe(yazl(A)).
+-spec movewhile( direction(), predicate(A), yazl(A) ) -> maybe(yazl(A)).
 
 movewhile( D, Pred, Z ) -> 
   moveuntil( D, fun(A) -> not Pred(A) end, Z ).
@@ -554,8 +555,10 @@ delete( l, {[_|LT],     R} ) -> {LT,R }.
 % ---------------------------------------------------
 % @doc Delete the indicated sublist.
 % If the yazl is empty, return the empty yazl.
-% For right, the focus will be positioned after the last element of the left sublist.
-% For left, the focus will be positioned before the first element of the right sublist.
+% For right, the focus will be positioned after the 
+% last element of the left sublist.
+% For left, the focus will be positioned before the 
+% first element of the right sublist.
 
 -spec truncate( direction(), yazl(A) ) -> yazl(A).
 
@@ -589,8 +592,10 @@ map( l, Fun, {L,_} ) -> lists:map( Fun, lists:reverse(L) ).
 
 -spec foldl( direction(), fun((A,B)->B), B, yazl(A) ) -> B.
 
-foldl( r, Fun, Init, {_,R} ) -> lists:foldl( Fun, Init, R );
-foldl( l, Fun, Init, {L,_} ) -> lists:foldl( Fun, Init, lists:reverse(L) ).
+foldl( r, Fun, Init, {_,R} ) -> 
+  lists:foldl( Fun, Init, R );
+foldl( l, Fun, Init, {L,_} ) -> 
+  lists:foldl( Fun, Init, lists:reverse(L) ).
 
 % ---------------------------------------------------
 % @doc Apply a foldr from the current focus to the left or right sublist.
