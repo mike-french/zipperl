@@ -11,6 +11,7 @@ doc
 ebin
 log
 logs
+tmp
 erl_crash.dump
 .rebar
 _rel

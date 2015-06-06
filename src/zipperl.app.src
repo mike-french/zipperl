@@ -4,9 +4,10 @@
   {registered, []},
   {applications,
    [kernel,
-    stdlib
+    stdlib,
+    proper
    ]},
   {env,[]},
-  {modules, [yazl]}
+  {modules, [yazl,yazl_test]}
  ]}.
  

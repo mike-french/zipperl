@@ -1,4 +1,4 @@
-%% coding: latin-1
+%% coding: utf-8
 
 %--------------------------------------------------------------------
 %
@@ -20,7 +20,7 @@
 % The yazl also provides global operations and index-based
 % random access, typically with an O(n) performance penalty.
 %
-% The focus may be between two members of the list, or at one of the ends. 
+% The focus may be between two elements of the list, or at one of the ends. 
 % The descriptions used here are slightly different from a true zipper,
 % because the focus is between elements, not at a current element
 % [<i>Functional Pearl: The Zipper</i>, Gérard Huet, 1997].
@@ -110,7 +110,7 @@
 %  delete, reverse, truncate'.
 %
 % Incremental operations will incur a cost proportional
-% to the distance from the focus from the target position:<br/>
+% to the distance from the focus to the target position:<br/>
 % `from_list/2, moves, moveto, moveuntil, 
 % find, finds'.
 %
@@ -127,7 +127,6 @@
 
 % ===================================================
 % API exports
-% ===================================================
 
 -export( [delete/2,
           ending/1,
@@ -159,7 +158,6 @@
 
 % ===================================================
 % Types
-% =================================================== 
 
 % A yazl is a tuple of two lists.
 -type yazl(A) :: { [A], [A] }.
@@ -194,7 +192,6 @@
 
 % ===================================================
 % Type utilities
-% ===================================================
 
 % ---------------------------------------------------
 % @doc Type utility: get the opposite of a direction.
@@ -211,10 +208,6 @@ opposite( l ) -> r.
 
 ending( r ) -> endr;
 ending( l ) -> endl.
-
-% ====================================================================
-% API functions
-% ====================================================================
 
 % ==============================================================
 % Constructors
@@ -252,8 +245,11 @@ from_list( endl, List ) when is_list(List) ->
   { [], List };
 from_list( endr, List ) when is_list(List) ->
   { lists:reverse(List), [] };
-from_list( I, List ) when is_list(List) and is_integer(I) 
-                      and (I >= 1) and (I =< length(List)) -> 
+from_list( I, List ) 
+    when    is_list(List) 
+    andalso is_integer(I) 
+    andalso (I >= 1) 
+    andalso (I =< length(List)) -> 
   { L, R } = lists:split( I-1, List ),
   { lists:reverse(L), R }.
 
@@ -265,7 +261,7 @@ from_list( I, List ) when is_list(List) and is_integer(I)
 
 -spec is_yazl( term() ) -> boolean().
 
-is_yazl( {L,R} ) -> is_list(L) and is_list(R);
+is_yazl( {L,R} ) -> is_list(L) andalso is_list(R);
 is_yazl( _ )     -> false.
 
 % ---------------------------------------------------
@@ -274,7 +270,7 @@ is_yazl( _ )     -> false.
 -spec is_empty( yazl(_) ) -> boolean().
 
 is_empty( {[],[]} ) -> true;
-is_empty( { _, _} ) -> false.
+is_empty( { _,_ } ) -> false.
 
 % ---------------------------------------------------
 % @doc Get the length of the underlying list.
@@ -320,8 +316,8 @@ to_list( { L,R } ) -> lists:reverse( L, R ).
 
 -spec get( direction(), yazl(A) ) -> maybe(A).
 
-get( r, { _,[]}   ) -> endr;
-get( l, {[], _}   ) -> endl;
+get( r, { _,[]} ) -> endr;
+get( l, {[],_ } ) -> endl;
 get( r, {_,[H|_]} ) -> H;
 get( l, {[H|_],_} ) -> H.
 
@@ -360,15 +356,15 @@ move( l, {[HL|TL],R } ) -> { TL, [HL|R] }.
 
 -spec moves( direction(), integer(), yazl(A) ) -> maybe(yazl(A)).
 
-moves( _, 0, Z       )                      -> Z;
-moves( D, 1, Z       )                      -> move( D, Z );
-moves( D, I, Z       ) when (I < 0)         -> moves( opposite(D), -I, Z );
-moves( r, I, { _,R } ) when (I > length(R)) -> endr;
-moves( l, I, { L,_ } ) when (I > length(L)) -> endl;
-moves( r, I, { L,R } ) -> { RH, RT } = lists:split( I, R ),
-                          { lists:reverse(RH,L), RT };
-moves( l, I, { L,R } ) -> { LH, LT } = lists:split( I, L ),
-                          { LT, lists:reverse(LH,R) }.
+moves( _, 0,     Z ) -> Z;
+moves( D, 1,     Z ) -> move( D, Z );
+moves( D, I,     Z ) when (I < 0) -> moves( opposite(D), -I, Z );
+moves( r, I, {_,R} ) when (I > length(R)) -> endr;
+moves( l, I, {L,_} ) when (I > length(L)) -> endl;
+moves( r, I, {L,R} ) -> { RH, RT } = lists:split( I, R ),
+                        { lists:reverse(RH,L), RT };
+moves( l, I, {L,R} ) -> { LH, LT } = lists:split( I, L ),
+                        { LT, lists:reverse(LH,R) }.
 
 % ---------------------------------------------------
 % @doc Move to the beginning or end of the list,
@@ -410,8 +406,8 @@ moveto( I,    Z={ _,_ } ) when is_integer(I) ->
 
 find( r, _, { _,[]} ) -> endr;
 find( l, _, {[],_ } ) -> endl;
-find( r, Val, Z={       _,[Val|_] } ) -> Z;
-find( l, Val, Z={ [Val|_],_       } ) -> move(l,Z); 
+find( r, Val, Z={ _,[Val|_] } ) -> Z;
+find( l, Val, Z={ [Val|_],_ } ) -> move(l,Z); 
 find( D, Val, Z ) -> find( D, Val, move(D,Z) ).
 
 % ---------------------------------------------------
@@ -423,9 +419,14 @@ find( D, Val, Z ) -> find( D, Val, move(D,Z) ).
 % focuses before the beginning (to the left) of the sequence.
 % If the search does not find the value,
 % then it returns `endr' or `endl'.
+% A search for an empty list is a no-op
+% that returns the original yazl
+% (following the convention of `lists:prefix' 
+%  that the empty list is a prefix of all lists).
 
--spec finds( direction(), [A], yazl(A) ) -> maybe(yazl(A)).
+-spec finds( direction(), [A,...], yazl(A) ) -> maybe(yazl(A)).
 
+finds( r,        [], Z ) -> Z;
 finds( r, Vs=[V|VT], Z ) ->
   case find(r,V,Z) of
     endr -> endr;
@@ -504,8 +505,8 @@ movewhile( D, Pred, Z ) ->
 
 set( r, _, { _,[]} ) -> endr;
 set( l, _, {[], _} ) -> endl;
-set( r, V, {     L,[_|RT]} ) -> { L,    [V|RT]};
-set( l, V, {[_|LT],R     } ) -> {[V|LT],R     }.
+set( r, V, {L,[_|RT]} ) -> { L,[V|RT]};
+set( l, V, {[_|LT],R} ) -> {[V|LT],R }.
 
 % ---------------------------------------------------
 % @doc Insert a value to the right or left of the current focus,
@@ -549,8 +550,8 @@ inserts( endl, Vs,  {L,R} ) -> { L++lists:reverse(Vs), R     }.
 
 delete( r, { _,[]} ) -> endr;
 delete( l, {[],_ } ) -> endl;
-delete( r, {     L,[_|RT]} ) -> { L,RT};
-delete( l, {[_|LT],     R} ) -> {LT,R }.
+delete( r, {L,[_|RT]} ) -> { L,RT};
+delete( l, {[_|LT],R} ) -> {LT,R }.
 
 % ---------------------------------------------------
 % @doc Delete the indicated sublist.
@@ -562,12 +563,13 @@ delete( l, {[_|LT],     R} ) -> {LT,R }.
 
 -spec truncate( direction(), yazl(A) ) -> yazl(A).
 
-truncate( r, {L,_} ) -> {L, []};
-truncate( l, {_,R} ) -> {[], R}.
+truncate( r, {L,_} ) -> { L,[]};
+truncate( l, {_,R} ) -> {[],R }.
 
 % ---------------------------------------------------
 % @doc Reverse the list maintaining focus.
 % If the yazl is empty, the result is the empty yazl.
+% This is very fast O(1), compared to O(n) for ordinary list.
 
 -spec reverse( yazl(A) ) -> yazl(A).
 
@@ -592,10 +594,8 @@ map( l, Fun, {L,_} ) -> lists:map( Fun, lists:reverse(L) ).
 
 -spec foldl( direction(), fun((A,B)->B), B, yazl(A) ) -> B.
 
-foldl( r, Fun, Init, {_,R} ) -> 
-  lists:foldl( Fun, Init, R );
-foldl( l, Fun, Init, {L,_} ) -> 
-  lists:foldl( Fun, Init, lists:reverse(L) ).
+foldl( r, Fun, Init, {_,R} ) -> lists:foldl( Fun, Init, R );
+foldl( l, Fun, Init, {L,_} ) -> lists:foldl( Fun, Init, lists:reverse(L) ).
 
 % ---------------------------------------------------
 % @doc Apply a foldr from the current focus to the left or right sublist.
