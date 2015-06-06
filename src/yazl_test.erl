@@ -38,25 +38,29 @@
 % new() -> empty_yazl().
 
 prop_new_value() ->
+  % an empty yazl is just a tuple of 2 empty lists
   equals( new(), {[],[]} ).
 
 % ---------------------------------------------------
 % from_list( [A] ) -> yazl(A).
 
 prop_from_list_to_list() ->
-  ?FORALL( {L,I}, {list(),integer()},
-     ?IMPLIES( 
-        (1 =< I) andalso (I =< length(L)),
-        L =:= yazl:to_list( yazl:from_list(I,L) )
-     )
+  % from and to list should return the original list
+  ?FORALL( L, list(), 
+    L =:= to_list( from_list(L) )
   ).
   
 % ---------------------------------------------------
 % from_list( position(), [A] ) -> yazl(A).
 
 prop_from_list_i_to_list() ->
-  ?FORALL( L, list(), 
-           L =:= yazl:to_list( yazl:from_list(L) )
+  % from list with position back to list 
+  % should return original list
+  ?FORALL( {L,I}, {list(),integer()},
+     ?IMPLIES( 
+        (1 =< I) and (I =< length(L)),
+        L =:= to_list( from_list(I,L) )
+     )
   ).
   
 % ---------------------------------------------------
@@ -75,6 +79,37 @@ prop_size_list() ->
 
 % ---------------------------------------------------
 % position( direction(), yazl(_) ) -> position().
+
+prop_position_from_endl() ->
+  % from list with position endl
+  ?FORALL( {L}, {list()},
+     begin
+       Z = from_list( endl, L ),
+       RPos = case size(Z) of 0 -> endr; _N -> 1 end,
+       (endl =:= position( l, Z )) and
+       (RPos =:= position( r, Z ))
+     end
+  ).
+
+prop_position_from_endr() ->
+  % from list with position endr
+  ?FORALL( {L}, {list()},
+     begin
+       Z = from_list( endr, L ),
+       LPos = case size(Z) of 0 -> endl; N -> N end,
+       (endr =:= position( r, Z )) and
+       (LPos =:= position( l, Z ))
+     end
+  ).
+  
+prop_position_from_i() ->
+  % from list with position i
+  ?FORALL( {L,I}, {list(),integer()},
+     ?IMPLIES( 
+        (1 =< I) andalso (I =< length(L)),
+        I =:= position( r, from_list(I,L) )
+     )
+  ).
 
 % ---------------------------------------------------
 % to_list( yazl(A) ) -> [A].

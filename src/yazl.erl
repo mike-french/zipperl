@@ -288,16 +288,19 @@ size( {L,R} ) -> length(L) + length(R).
 % a non-empty list, then the left index is `endl'.
 % If the yazl is at the end of a non-empty list, 
 % then the right index is `endr'.
-% Note that having to return a position breaks the symmetry 
-% of the empty yazl. The return value will be `endl', 
+%
+% Note that having to return a position for the empty
+% yazl breaks the symmetry. 
+% The return value will be `endl', 
 % even though it is also `endr' for rightward operations.
 
 -spec position( direction(), yazl(_) ) -> position().
 
 position( l, {[],_ } ) -> endl;
 position( r, { _,[]} ) -> endr;
-position( r, { L,_ } ) -> length(L) + 1;
-position( l, { L,_ } ) -> length(L).
+position( l, { L,_ } ) -> length(L);
+position( r, { L,_ } ) -> length(L) + 1.
+
 
 % ---------------------------------------------------
 % @doc Recover the underlying list.
