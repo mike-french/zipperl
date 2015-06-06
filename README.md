@@ -6,17 +6,24 @@ An Erlang library for [zipper data structures](http://en.wikipedia.org/wiki/Zipp
 
 #### yazl 
 
-Yet Another Zipper List (yazl), pronounced _yazzle_
+Yet Another Zipper List (yazl), pronounced _yazzle_.
 
 A list with a cursor giving incremental bidirectional traversal and constant time read, write and insert. The interface is expressed symmetrically for forward and backward operations.
 
 ## Build
 
-`rebar3 do compile, edoc, dialyzer`
+`rebar3 do deps, compile, edoc, dialyzer`
 
 ## Test
 
-...
+`erl shell`    
+or     
+`erl -pz _build/default/lib/zipperl/ebin _build/default/lib/proper/ebin`   
+
+then 
+
+`> proper:check_specs( yazl ).`
+`> proper:module( yazl_test ).`
 
 ## References
 
