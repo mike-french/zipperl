@@ -251,11 +251,8 @@ from_list( endl, List ) when is_list(List) ->
   { [], List };
 from_list( endr, List ) when is_list(List) ->
   { lists:reverse(List), [] };
-from_list( I, List ) 
-    when    is_list(List) 
-    andalso is_integer(I) 
-    andalso (I >= 1) 
-    andalso (I =< length(List)) -> 
+from_list(    I, List ) when is_list(List) 
+  and is_integer(I) and (I >= 1) and (I =< length(List)) -> 
   { L, R } = lists:split( I-1, List ),
   { lists:reverse(L), R }.
 
@@ -445,20 +442,10 @@ finds( r, Vs=[V|VT], Z ) ->
         false -> finds( r, Vs, move(r,Y) ) 
       end
   end;
-finds( l, Vs, Z ) -> findsl( lists:reverse(Vs), Z ).
-
-% private
-
--spec findsl( [A], yazl(A) ) -> maybe(yazl(A)).
-
-findsl( Vs=[V|VT], Z ) ->
-  case find(l,V,Z) of
-    endl -> endl;
-    Y={ [V|LT], _ } -> 
-      case lists:prefix(VT,LT) of
-        true  -> moves( l, length(VT), Y );
-        false -> finds( l, Vs, move(l,Y) ) 
-      end
+finds( l, Vs, Z ) -> 
+  case finds( r, lists:reverse(Vs), reverse(Z) ) of
+    endr -> endl;
+    Y    -> reverse( moves( r, length(Vs), Y ) )
   end.
   
 % ---------------------------------------------------

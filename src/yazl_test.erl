@@ -48,70 +48,14 @@ nonempty_yazls() -> { non_empty(list(integer())),
 % ---------------------------------------------------
 % Local utility functions
 
+% reflect a position as if during a reverse
+
 reflect( r,  _, endr ) -> 1;
 reflect( l,  N, endl ) -> N;
 reflect( r,  _, 1    ) -> endr;
 reflect( l,  N, N    ) -> endl;
 reflect( r,  N, IR   ) -> N - IR + 2;
 reflect( l,  N, IL   ) -> N - IL.
-
-% ---------------------------------------------------
-% reverse( yazl(A) ) -> yazl(A).
-
-prop_reverse_empty() ->
-  io:fwrite( "Reversing empty yazl leaves yazl unchanged~n" ),
-  new() =:= reverse( new() ).
-
-prop_reverse_single() ->
-  io:fwrite( "Reversing a singleton leaves list unchanged~n" ),
-  L = [a],
-  L =:= to_list( reverse( from_list(L) ) ).
-
-prop_reverse_list() ->
-  io:fwrite( "Reversing yazl reverses the underlying list~n" ),     
-  ?FORALL( Z, yazls(),
-     lists:reverse( to_list(Z) ) =:= to_list( reverse(Z) )
-  ).
-  
-prop_reverse_twice_identity() ->
-  io:fwrite( "Reversing twice restores the original~n" ),     
-  ?FORALL( Z, yazls(),
-     Z =:= reverse( reverse(Z) )
-  ).
-  
-prop_reverse_switches_ends() ->
-  io:fwrite( "Reversing an end position switches the ending~n" ),
-  ?FORALL( L, list(),
-     (endr =:= position( r, reverse( from_list(endl,L) ) )) and
-     (endl =:= position( l, reverse( from_list(endr,L) ) ))
-  ).
-  
-prop_reverse_switches_current_values() ->
-  io:fwrite( "Reversing switches local values~n" ),
-  ?FORALL( Z, nonempty_yazls(),
-     begin
-       LVal = get( l, Z ),
-       RVal = get( r, Z ),
-       RevZ = reverse( Z ),
-       (LVal =:= get( r, RevZ )) and 
-       (RVal =:= get( l, RevZ ))
-     end
-  ).
-  
-prop_reverse_reflects_index() ->
-  io:fwrite( "Reversing reflects the index position~n" ),     
-  ?FORALL( Z, nonempty_yazls(),
-     begin
-       N = size( Z ),
-       PosR = position( r, Z ),
-       PosL = position( l, Z ),
-       RevZ = reverse( Z ),
-       PosRevR = position( r, RevZ ),
-       PosRevL = position( l, RevZ ),
-       (PosRevR =:= reflect( r, N, PosR )) and
-       (PosRevL =:= reflect( l, N, PosL ))
-     end
-  ).
   
 % ---------------------------------------------------
 % new() -> empty_yazl().
@@ -266,6 +210,27 @@ prop_position_from_i() ->
 % ---------------------------------------------------
 % finds( direction(), [A], yazl(A) ) -> maybe(yazl(A)).
 
+prop_finds_empty_list() ->
+  io:fwrite( "Empty list is always found as prefix of every list~n" ),
+  Z = new(),
+  (Z =:= finds( r, [], Z )) and
+  (Z =:= finds( l, [], Z )).
+  
+prop_finds_nonempty_ends() ->
+  io:fwrite( "Nonempty list is not found at ends~n" ),
+  ?FORALL( L, list(),
+    (endr =:= finds( r, [a], from_list( endr, L ) )) and
+    (endl =:= finds( l, [a], from_list( endl, L ) ))
+  ).
+  
+prop_finds_regression1() ->
+  L = [a],
+  from_list(endl,L) =:= finds( l, L, from_list(endr,L) ).
+  
+prop_finds_regression2() ->
+  L = [abc],
+  from_list(endl,L) =:= finds( l, L, from_list(endr,L) ).
+
 % ---------------------------------------------------
 % moveuntil( direction(), predicate(A), yazl(A) ) -> maybe(yazl(A)).
 
@@ -287,7 +252,63 @@ prop_position_from_i() ->
 % ---------------------------------------------------
 % truncate( direction(), yazl(A) ) -> yazl(A).
 
+% ---------------------------------------------------
+% reverse( yazl(A) ) -> yazl(A).
 
+prop_reverse_empty() ->
+  io:fwrite( "Reversing empty yazl leaves yazl unchanged~n" ),
+  new() =:= reverse( new() ).
+
+prop_reverse_single() ->
+  io:fwrite( "Reversing a singleton leaves list unchanged~n" ),
+  L = [a],
+  L =:= to_list( reverse( from_list(L) ) ).
+
+prop_reverse_list() ->
+  io:fwrite( "Reversing yazl reverses the underlying list~n" ),     
+  ?FORALL( Z, yazls(),
+     lists:reverse( to_list(Z) ) =:= to_list( reverse(Z) )
+  ).
+  
+prop_reverse_twice_identity() ->
+  io:fwrite( "Reversing twice restores the original~n" ),     
+  ?FORALL( Z, yazls(),
+     Z =:= reverse( reverse(Z) )
+  ).
+  
+prop_reverse_switches_ends() ->
+  io:fwrite( "Reversing an end position switches the ending~n" ),
+  ?FORALL( L, list(),
+     (endr =:= position( r, reverse( from_list(endl,L) ) )) and
+     (endl =:= position( l, reverse( from_list(endr,L) ) ))
+  ).
+  
+prop_reverse_switches_current_values() ->
+  io:fwrite( "Reversing switches local values~n" ),
+  ?FORALL( Z, nonempty_yazls(),
+     begin
+       LVal = get( l, Z ),
+       RVal = get( r, Z ),
+       RevZ = reverse( Z ),
+       (LVal =:= get( r, RevZ )) and 
+       (RVal =:= get( l, RevZ ))
+     end
+  ).
+  
+prop_reverse_reflects_index() ->
+  io:fwrite( "Reversing reflects the index position~n" ),     
+  ?FORALL( Z, nonempty_yazls(),
+     begin
+       N = size( Z ),
+       PosR = position( r, Z ),
+       PosL = position( l, Z ),
+       RevZ = reverse( Z ),
+       PosRevR = position( r, RevZ ),
+       PosRevL = position( l, RevZ ),
+       (PosRevR =:= reflect( r, N, PosR )) and
+       (PosRevL =:= reflect( l, N, PosL ))
+     end
+  ).
 
 % ---------------------------------------------------
 % map( direction(), fun((A)->B), yazl(A) ) -> [B].
