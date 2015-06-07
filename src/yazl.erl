@@ -126,35 +126,47 @@
 -module('yazl').
 
 % ===================================================
-% API exports
+% API and type exports
 
--export( [delete/2,
-          ending/1,
-          find/3,
-          finds/3,
-          foldl/4,
-          foldr/4,
-          from_list/1, from_list/2,
-          get/2,
-          insert/3, 
-          inserts/3,
-          is_yazl/1,
-          is_empty/1,
-          map/3,
-          move/2, 
-          moves/3,
-          moveto/2,
-          moveuntil/3,
-          movewhile/3,
-          new/0,
-          opposite/1,
-          position/2,
-          reverse/1,
-          set/3,
-          size/1,
-          to_list/1,
-          truncate/2
-         ] ).
+-export( [
+   delete/2,
+   ending/1,
+   find/3,
+   finds/3,
+   foldl/4,
+   foldr/4,
+   from_list/1, from_list/2,
+   get/2,
+   insert/3, 
+   inserts/3,
+   is_yazl/1,
+   is_empty/1,
+   map/3,
+   move/2, 
+   moves/3,
+   moveto/2,
+   moveuntil/3,
+   movewhile/3,
+   new/0,
+   opposite/1,
+   position/2,
+   reverse/1,
+   set/3,
+   size/1,
+   to_list/1,
+   truncate/2
+] ).
+         
+-export_types( [
+   yazl/1,
+   empty_yazl/0,
+   direction/0,
+   ending/0,
+   index/0,
+   maybe/1,
+   position/0,
+   predicate/1 
+] ).
 
 % ===================================================
 % Types
@@ -168,14 +180,8 @@
 % Directions are rightward and leftward.
 -type direction() :: r | l.
 
-% At the left (beginning) of the list.
--type endl() :: endl.
-
-% At the right (end) of the list.
--type endr() :: endr.
-
 % A position off the beginning or end of the list.
--type ending() :: endr() | endl().
+-type ending() :: endr | endl.
 
 % A 1-based index of a position in the list.
 % The value will be between 1 and `size', inclusive.
