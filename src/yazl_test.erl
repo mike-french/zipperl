@@ -32,6 +32,8 @@
           truncate/2
          ] ).
          
+-export( [test/0] ).
+
 -include_lib("proper/include/proper.hrl").
 
 % ---------------------------------------------------
@@ -44,6 +46,19 @@ yazls() -> { list(integer()), list(integer()) }.
 
 nonempty_yazls() -> { non_empty(list(integer())), 
                       non_empty(list(integer())) }.
+                      
+list1() -> ?SUCHTHAT( L, list(), length(L) > 0).
+list2() -> ?SUCHTHAT( L, list(), length(L) > 1).
+list3() -> ?SUCHTHAT( L, list(), length(L) > 2).
+
+% ---------------------------------------------------
+% Main test program
+
+-spec test() -> list().
+
+test() ->
+  proper:check_specs( yazl ) ++
+  proper:module( yazl_test ).
 
 % ---------------------------------------------------
 % Local utility functions
@@ -164,40 +179,87 @@ prop_position_from_i() ->
 
 % ---------------------------------------------------
 % move( direction(), yazl(A) ) -> maybe(yazl(A)).
--ifdef( ZZZ ).
-prop_position_from_endl() ->
-  io:fwrite( "Import list at endl makes positions l->endl and r->1|endr~n" ),
-  ?FORALL( L, list(),
-     begin
-       Z = from_list( endl, L ),
-       RPos = case size(Z) of 0 -> endr; _N -> 1 end, 
-       (endl =:= position( l, Z )) and
-       (RPos =:= position( r, Z ))
-     end
-  ).
 
-prop_position_from_endr() ->
-  io:fwrite( "Import list at endr makes positions r->endr and l->1|endl~n" ),
+prop_move_l_from_endl() ->
+  io:fwrite( "Cannot move left from left end~n" ),
   ?FORALL( L, list(),
-     begin
-       Z = from_list( endr, L ),
-       LPos = case size(Z) of 0 -> endl; N -> N end,
-       (endr =:= position( r, Z )) and
-       (LPos =:= position( l, Z ))
-     end
+     endl =:= move( l, from_list( endl, L ) )
   ).
   
-prop_position_from_i() ->
-  io:fwrite( "Import list at i has position r->i~n" ),
-  ?FORALL( L, non_empty(list()),
+prop_move_r_from_endr() ->
+  io:fwrite( "Cannot move right from right end~n" ),
+  ?FORALL( L, list(),
+     endr =:= move( r, from_list( endr, L ) )
+  ).
+  
+prop_move_r_from_n() ->
+  io:fwrite( "Move right from last element to right end~n" ),
+  ?FORALL( L, list1(),
+     endr =:= position( r, move( r, from_list( length(L), L ) ) )
+  ).
+  
+prop_move_l_from_1() ->
+  io:fwrite( "Move left from 2nd element to left end~n" ),
+  ?FORALL( L, list2(),
+     endl =:= position( l, move( r, from_list( 2, L ) ) )
+  ).
+  
+prop_move_r_increment_r() ->
+  io:fwrite( "Moving right increments right position~n" ),
+  ?FORALL( L, list2(),
      begin
        N = length(L),
-       ?FORALL( I, range(1,N),
-          I =:= position( r, from_list(I,L) )
+       ?FORALL( I, range(1,N-1),
+          begin
+            Z = from_list(I,L),
+            position( r, move(r,Z) ) =:= position(r,Z) + 1 
+          end
        )
      end
   ).
--endif.
+  
+prop_move_l_decrement_l() ->
+  io:fwrite( "Moving left decrements left position~n" ),
+  ?FORALL( L, list3(),
+     begin
+       N = length(L),
+       ?FORALL( I, range(3,N),
+          begin
+            Z = from_list(I,L),
+            position( l, move(l,Z) ) =:= position(l,Z) - 1 
+          end
+       )
+     end
+  ).
+  
+prop_move_r_increment_l() ->
+  io:fwrite( "Moving right increments left position~n" ),
+  ?FORALL( L, list2(),
+     begin
+       N = length(L),
+       ?FORALL( I, range(2,N),
+          begin
+            Z = from_list(I,L),
+            position( l, move(r,Z) ) =:= position(l,Z) + 1 
+          end
+       )
+     end
+  ).
+  
+prop_move_l_decrement_r() ->
+  io:fwrite( "Moving left decrements right position~n" ),
+  ?FORALL( L, list2(),
+     begin
+       N = length(L),
+       ?FORALL( I, range(2,N-1),
+          begin
+            Z = from_list(I,L),
+            position( r, move(l,Z) ) =:= position(r,Z) - 1 
+          end
+       )
+     end
+  ).
+  
 % ---------------------------------------------------
 % moves( direction(), integer(), yazl(A) ) -> maybe(yazl(A)).
 
