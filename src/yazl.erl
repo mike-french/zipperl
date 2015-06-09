@@ -425,12 +425,13 @@ find( D, Val, Z ) -> find( D, Val, move(D,Z) ).
 % focuses before the beginning (to the left) of the sequence.
 % If the search does not find the value,
 % then it returns `endr' or `endl'.
+%
 % A search for an empty list is a no-op
 % that returns the original yazl
 % (following the convention of `lists:prefix' 
 %  that the empty list is a prefix of all lists).
 
--spec finds( direction(), [A,...], yazl(A) ) -> maybe(yazl(A)).
+-spec finds( direction(), [A], yazl(A) ) -> maybe(yazl(A)).
 
 finds( r,        [], Z ) -> Z;
 finds( r, Vs=[V|VT], Z ) ->
