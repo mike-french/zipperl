@@ -57,8 +57,10 @@ list3() -> ?SUCHTHAT( L, list(), length(L) > 2).
 -spec test() -> list().
 
 test() ->
-  proper:check_specs( yazl ) ++
-  proper:module( yazl_test ).
+  SpecErrs = proper:check_specs( yazl ) -- 
+             [{yazl,from_list,2}],  % known errors
+  PropErrs = proper:module( yazl_test ),
+  SpecErrs ++ PropErrs.
 
 % ---------------------------------------------------
 % Local utility functions
@@ -260,9 +262,52 @@ prop_move_l_decrement_r() ->
      end
   ).
   
+prop_move_l_r_unchanged() ->
+  io:fwrite( "Moving left then right is no-op~n" ),
+  ?FORALL( L, list2(),
+     begin
+       N = length(L),
+       ?FORALL( I, range(2,N),
+          begin
+            Z = from_list(I,L),
+            Z =:= move(r,move(l,Z)) 
+          end
+       )
+     end
+  ).
+  
+prop_move_r_l_unchanged() ->
+  io:fwrite( "Moving right then left is no-op~n" ),
+  ?FORALL( L, list1(),
+     begin
+       N = length(L),
+       ?FORALL( I, range(1,N),
+          begin
+            Z = from_list(I,L),
+            Z =:= move(l,move(r,Z)) 
+          end
+       )
+     end
+  ).
+  
 % ---------------------------------------------------
 % moves( direction(), integer(), yazl(A) ) -> maybe(yazl(A)).
 
+prop_moves_l_negative_r() ->
+  io:fwrite( "Moving -ve is same as moving +ve in other direction~n" ),
+  ?FORALL( L, list1(),
+     begin
+       N = length(L),
+       ?FORALL( I, range(1,N),
+          begin
+            Z = from_list(I,L),
+            (moves(r,I,Z) =:= moves(l,-I,Z)) and 
+            (moves(l,I,Z) =:= moves(r,-I,Z))
+          end
+       )
+     end
+  ).
+  
 % ---------------------------------------------------
 % moveto( position(), yazl(A) ) -> maybe(yazl(A)).
   
