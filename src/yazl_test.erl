@@ -39,17 +39,14 @@
 % ---------------------------------------------------
 % Proper utility types and generators
 
-% -type yazls :: yasl:yazl( integer() ).
-% -type yazls :: { list(integer()), list(integer()) }.
-
 yazls() -> { list(integer()), list(integer()) }.
 
 nonempty_yazls() -> { non_empty(list(integer())), 
                       non_empty(list(integer())) }.
                       
-list1() -> ?SUCHTHAT( L, list(), length(L) > 0).
-list2() -> ?SUCHTHAT( L, list(), length(L) > 1).
-list3() -> ?SUCHTHAT( L, list(), length(L) > 2).
+list1() -> [1|list()].
+list2() -> [2|list1()].
+list3() -> [3|list2()].
 
 % ---------------------------------------------------
 % Main test program
@@ -106,7 +103,7 @@ prop_from_list_to_list() ->
 
 prop_from_list_i_to_list() ->
   io:fwrite( "Roundtrip from list with position gives original list~n" ),
-  ?FORALL( L, non_empty(list()),
+  ?FORALL( L, list1(),
      begin
        N = length(L),
        ?FORALL( I, range(1,N),
@@ -127,7 +124,7 @@ prop_is_empty_new() ->
   
 prop_is_empty_not() ->
   io:fwrite( "Non-empty lists are non-empty~n" ),
-  ?FORALL( L, non_empty(list()), 
+  ?FORALL( L, list1(), 
      not is_empty( from_list(L) )
   ).
   
@@ -167,7 +164,7 @@ prop_position_from_endr() ->
   
 prop_position_from_i() ->
   io:fwrite( "Import list at i has position r->i~n" ),
-  ?FORALL( L, non_empty(list()),
+  ?FORALL( L, list1(),
      begin
        N = length(L),
        ?FORALL( I, range(1,N),
@@ -203,9 +200,9 @@ prop_move_r_from_n() ->
 prop_move_l_from_1() ->
   io:fwrite( "Move left from 2nd element to left end~n" ),
   ?FORALL( L, list2(),
-     endl =:= position( l, move( r, from_list( 2, L ) ) )
+     endl =:= position( l, move( l, from_list( 2, L ) ) )
   ).
-  
+ 
 prop_move_r_increment_r() ->
   io:fwrite( "Moving right increments right position~n" ),
   ?FORALL( L, list2(),
@@ -253,7 +250,7 @@ prop_move_l_decrement_r() ->
   ?FORALL( L, list2(),
      begin
        N = length(L),
-       ?FORALL( I, range(2,N-1),
+       ?FORALL( I, range(2,N),
           begin
             Z = from_list(I,L),
             position( r, move(l,Z) ) =:= position(r,Z) - 1 
@@ -293,7 +290,7 @@ prop_move_r_l_unchanged() ->
 % ---------------------------------------------------
 % moves( direction(), integer(), yazl(A) ) -> maybe(yazl(A)).
 
-prop_moves_l_negative_r() ->
+prop_moves_negative_opposite() ->
   io:fwrite( "Moving -ve is same as moving +ve in other direction~n" ),
   ?FORALL( L, list1(),
      begin
@@ -308,8 +305,50 @@ prop_moves_l_negative_r() ->
      end
   ).
   
+prop_moves_zero_noop() ->
+  io:fwrite( "Moving by zero does not change anything~n" ),     
+  ?FORALL( Z, yazls(),
+     (Z =:= moves(r,0,Z)) and 
+     (Z =:= moves(l,0,Z))
+  ).
+  
+prop_moves_one_move() ->
+  io:fwrite( "Moving by one is same simple move~n" ),     
+  ?FORALL( Z, yazls(),
+     (move(r,Z) =:= moves(r,1,Z)) and 
+     (move(l,Z) =:= moves(l,1,Z))
+  ).
+  
+% TODO multi-moves
+  
 % ---------------------------------------------------
 % moveto( position(), yazl(A) ) -> maybe(yazl(A)).
+
+prop_moveto_end() ->
+  io:fwrite( "Move to end puts you at end~n" ),     
+  ?FORALL( Z, yazls(),
+     (endl =:= position(l,moveto(endl,Z))) and
+     (endr =:= position(r,moveto(endr,Z)))
+  ).
+  
+prop_moveto_past_end() ->
+  io:fwrite( "Move to beyond the end returns end flag~n" ),     
+  ?FORALL( Z, yazls(),
+     (endl =:= moveto( -size(Z),Z)) and
+     (endr =:= moveto(1+size(Z),Z))
+  ).
+  
+prop_moveto_index() ->
+  io:fwrite( "Move to a valid index puts you at the index~n" ),
+  ?FORALL( L, list1(),
+     begin
+       N = length(L),
+       ?FORALL( I, range(1,N),
+          (from_list(I,L) =:= moveto( I, from_list(L) ) ) and
+          (I =:= position( r, moveto( I, from_list(L) )))
+       )
+     end
+  ).
   
 % ---------------------------------------------------
 % find( direction(), A, yazl(A) ) -> maybe(yazl(A)).
