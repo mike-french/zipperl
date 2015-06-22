@@ -6,7 +6,7 @@ An Erlang library for [zipper data structures](http://en.wikipedia.org/wiki/Zipp
 
 #### yazl 
 
-Yet Another Zipper List (yazl), pronounced _yazzle_.
+Yet Another Zipper List (yazl), pronounced '_yazzle_'.
 
 A list with a cursor giving incremental bidirectional traversal and constant time read, write and insert. The interface is expressed symmetrically for forward and backward operations.
 
@@ -22,8 +22,9 @@ or
 
 then 
 
-`> proper:check_specs( yazl ).`
-`> proper:module( yazl_test ).`
+`> yazl_test:test( specs ).`    for PropEr testing of type signatures     
+`> yazl_test:test( funcs ).`    for PropEr testinf of functions     
+`> yazl_test:test().`           for combined testing of specs and funcs
 
 ## References
 
