@@ -358,7 +358,7 @@ move( l, {[HL|TL],R } ) -> { TL, [HL|R] }.
 % Negative offsets are converted to the equivalent positive
 % offset in the other direction, which may return an
 % unexpected opposite end value,
-% e.g. moves(r,-2,Z) may return `endl'.
+% e.g. `moves(r,-2,Z)' may return `endl'.
 
 -spec moves( direction(), integer(), yazl(A) ) -> maybe(yazl(A)).
 
@@ -376,7 +376,7 @@ moves( l, I, {L,R} ) -> { LH, LT } = lists:split( I, L ),
 % @doc Move to the beginning or end of the list,
 % or an absolute index position within the list.
 % The position is `endr' or `endl',
-% or an integer signifying a index,
+% or a 1-based integer signifying a index,
 % <i>i.e.</i> focus before the given index.
 % If the index offset would overrun the beginning
 % or end of the list, then return `endr' or `endl'.
@@ -433,7 +433,7 @@ find( D, Val, Z ) -> find( D, Val, move(D,Z) ).
 
 -spec finds( direction(), [A], yazl(A) ) -> maybe(yazl(A)).
 
-finds( r,        [], Z ) -> Z;
+finds( _,        [], Z ) -> Z;
 finds( r, Vs=[V|VT], Z ) ->
   case find(r,V,Z) of
     endr -> endr;
