@@ -32,7 +32,7 @@
           truncate/2
          ] ).
          
--export( [test/0] ).
+-export( [test/0, test/1] ).
 
 -include_lib("proper/include/proper.hrl").
 
@@ -44,9 +44,9 @@ yazls() -> { list(integer()), list(integer()) }.
 nonempty_yazls() -> { non_empty(list(integer())), 
                       non_empty(list(integer())) }.
                       
-list1() -> [1|list()].
-list2() -> [2|list1()].
-list3() -> [3|list2()].
+list1() -> [1]++list().
+list2() -> [2]++list1().
+list3() -> [3]++list2().
 
 % ---------------------------------------------------
 % Main test program
@@ -54,10 +54,15 @@ list3() -> [3|list2()].
 -spec test() -> list().
 
 test() ->
-  SpecErrs = proper:check_specs( yazl ) -- 
-             [{yazl,from_list,2}],  % known errors
-  PropErrs = proper:module( yazl_test ),
-  SpecErrs ++ PropErrs.
+  test( specs ) ++ test( funcs ).
+
+test( specs ) ->
+  proper:check_specs( yazl ) -- 
+    [ % known errors
+      {yazl,from_list,2}
+    ]; 
+test( funcs ) ->
+  proper:module( yazl_test ).
 
 % ---------------------------------------------------
 % Local utility functions
@@ -100,7 +105,7 @@ prop_from_list_to_list() ->
   
 % ---------------------------------------------------
 % from_list( position(), [A] ) -> yazl(A).
-
+  
 prop_from_list_i_to_list() ->
   io:fwrite( "Roundtrip from list with position gives original list~n" ),
   ?FORALL( L, list1(),
@@ -109,7 +114,9 @@ prop_from_list_i_to_list() ->
        ?FORALL( I, range(1,N),
           begin
             Z = from_list(I,L),
-            is_yazl(Z) and (L =:= to_list(Z))
+            is_yazl(Z) and 
+            (I =:= position(r,Z)) and
+            (L =:= to_list(Z))
           end
        )
      end
@@ -175,6 +182,44 @@ prop_position_from_i() ->
 
 % ---------------------------------------------------
 % get( direction(), yazl(A) ) -> maybe(A).
+
+prop_get_ends() ->
+  io:fwrite( "Accessing past the ends does not get value~n" ),
+  ?FORALL( L, list(),
+     (endl =:= get( l, from_list(endl,L) )) and
+     (endr =:= get( r, from_list(endr,L) ))
+  ).
+  
+prop_get_from_position() ->
+  io:fwrite( "Accessor returns the value at the index~n" ),
+  ?FORALL( L, list1(),
+     begin
+       N = length(L),
+       ?FORALL( I, range(1,N),
+          begin
+            V = lists:nth( I, L ),
+            Z = from_list( I, L ),
+            (V =:= get( r, Z )) and
+            (V =:= get( l, move(r,Z) ))
+          end
+       )
+     end
+  ).
+  
+prop_get_set_insert() ->
+  io:fwrite( "Accessor returns new value set or inserted~n" ),
+  ?FORALL( L, list1(),
+     begin
+       N = length(L),
+       ?FORALL( I, range(1,N),
+          begin
+            Z = from_list( I, L ),
+            (99 =:= get(r,    set(r,99,Z) )) and
+            (99 =:= get(r, insert(r,99,Z) ))
+          end
+       )
+     end
+  ).
 
 % ---------------------------------------------------
 % move( direction(), yazl(A) ) -> maybe(yazl(A)).
@@ -353,6 +398,40 @@ prop_moveto_index() ->
 % ---------------------------------------------------
 % find( direction(), A, yazl(A) ) -> maybe(yazl(A)).
 
+prop_find_present_r() ->
+  io:fwrite( "Simple find element to right~n" ),
+  L = [1,2,3],
+  ZL = from_list( endl, L ),
+  (from_list(1,L) =:= find( r, 1, ZL )) and
+  (from_list(2,L) =:= find( r, 2, ZL )) and
+  (from_list(3,L) =:= find( r, 3, ZL )).
+  
+prop_find_present_l() ->
+  io:fwrite( "Simple find element to left~n" ),
+  L = [1,2,3],
+  ZR = from_list( endr, L ),
+  (from_list(1,L) =:= find( l, 1, ZR )) and
+  (from_list(2,L) =:= find( l, 2, ZR )) and
+  (from_list(3,L) =:= find( l, 3, ZR )).
+  
+prop_find_absent() ->
+  io:fwrite( "Cannot find absent element~n" ),
+  L = [1,2,3],
+  ZL = from_list( endl, L ),
+  ZR = from_list( endr, L ),
+  (endr =:= find( r, 99, ZR )) and
+  (endr =:= find( r, 99, ZL )) and
+  (endl =:= find( l, 99, ZR )) and
+  (endl =:= find( l, 99, ZL )).
+  
+prop_find_look_the_other_way() ->
+  io:fwrite( "Cannot find element by looking the other way~n" ),
+  L = [1,2,3],
+  ZL = from_list( endl, L ),
+  ZR = from_list( endr, L ),
+  (endr =:= find( r, 2, ZR )) and
+  (endl =:= find( l, 2, ZL )).
+  
 % ---------------------------------------------------
 % finds( direction(), [A], yazl(A) ) -> maybe(yazl(A)).
 
@@ -388,6 +467,21 @@ prop_finds_regression2() ->
 
 % ---------------------------------------------------
 % insert( direction() | ending(), A, yazl(A) ) -> yazl(A).
+
+prop_insert_ends() ->
+  io:fwrite( "Insert at the ends~n" ),
+  ?FORALL( L, list1(),
+     begin
+       N = length(L),
+       ?FORALL( I, range(1,N),
+          begin
+            Z = from_list( I, L ),
+            (99 =:= get(l, moveto(endr,insert(endr,99,Z)))) and
+            (99 =:= get(r, moveto(endl,insert(endl,99,Z))))
+          end
+       )
+     end
+  ).
 
 % ---------------------------------------------------
 % inserts( direction(), [A], yazl(A) ) -> yazl(A).
