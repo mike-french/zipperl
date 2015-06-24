@@ -22,7 +22,7 @@ The interface is expressed symmetrically for forward (right) and backward (left)
 
 ## Documentation
 
-`rebar3 edoc'
+`rebar3 edoc`
 
 ## References
 
