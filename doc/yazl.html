@@ -1,0 +1,455 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Module yazl</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" title="EDoc">
+</head>
+<body bgcolor="white">
+<div class="navbar"><a name="#navbar_top"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<hr>
+
+<h1>Module yazl</h1>
+<ul class="index"><li><a href="#description">Description</a></li><li><a href="#types">Data Types</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>YAZL '<i>yazzle</i>' (Yet Another Zipper List): 
+A mutable list with a current focus position.
+
+
+<h2><a name="description">Description</a></h2><p>YAZL '<i>yazzle</i>' (Yet Another Zipper List): 
+A mutable list with a current focus position.</p>
+
+ <p>A yazl supports operations normally found in 
+mutable doubly-linked lists, such as read, update, 
+insert, delete and incremental bi-directional traversal. 
+Local operations in the neighbourhood of the focus 
+are executed in O(1) constant time. 
+The yazl also provides global operations and index-based 
+random access, typically with an O(n) performance penalty.</p>
+
+ <p>The focus may be between two elements of the list, or at one of the ends.
+ The descriptions used here are slightly different from a true zipper,
+ because the focus is between elements, not at a current element
+ [<i>Functional Pearl: The Zipper</i>, Gérard Huet, 1997].</p>
+
+ <p>We describe lists as being ordered left-to-right,
+ like western writing, with the excuse that this bias is already
+ present in Erlang with the names <i>foldl</i>, <i>foldr</i>.</p>
+
+ <p>The position of the current element is either a 1-based positive integer,
+ or an end marker: <code>endl</code>, for the beginning, or <code>endr</code> for the end. 
+The current value is after (to the right of) the focus, if it exists. 
+There is no current value for empty lists, 
+or non-empty lists with the focus after the right end.</p>
+
+ <p>Functions on single values and lists of values are not overloaded,
+ they are given distinct names (<i>e.g.</i><code>insert</code>/<code>inserts</code>),
+ so that yazls can have lists as regular elements
+ (<i>i.e.</i> lists of lists).</p>
+
+ <h3><a name="Usage">Usage</a></h3>
+
+ <h4><a name="Create,_Import,_Export">Create, Import, Export</a></h4>
+
+ <p>Create yazls from lists using <code>new</code> and <code>from_list</code>.
+ Test if a term appears to be a yazl with <code>is_yazl</code>.
+ Recover the underlying list with <code>to_list</code>.</p>
+
+ <h4><a name="Query">Query</a></h4>
+
+ <p>Test if the yazl is empty with <code>is_empty</code>.
+ Get the total length of the underlying list using <code>size</code>.
+ Read the value at the current focus position using <code>get</code>.
+ Find the current focus location using <code>position</code>, 
+which may return a 1-based integer index, or an ending marker.</p>
+
+ <h4><a name="Move">Move</a></h4>
+
+ <p>Movement functions change the focus position,
+ but do not change the content of the list.
+ Movements return special flags <code>endl</code> or <code>endr</code>
+ if an operation would take the focus
+ beyond the beginning or end of the list.
+ Client code can implement cyclic behaviour by using
+ these flags in conjunction with the <code>moveto</code> function.</p>
+
+ <p>Move the focus with <code>move</code>, <code>moves</code>, <code>moveto</code>.
+ The <code>move</code> function changes focus to the next or previous elements.
+ The <code>moves</code> function jumps multiple steps relative to the current focus.
+ The <code>moveto</code> function jump to absolute positions based on 
+a specific index, or the beginning or end of the list.</p>
+
+ <h4><a name="Search">Search</a></h4>
+
+ <p>Move the focus by searching with <code>find</code>, <code>finds</code>,
+ <code>moveuntil</code> and <code>movewhile</code>.
+ The <code>find</code> function will search for the next or previous
+ occurrence of a value. The <code>finds</code> function searches for the
+ next or previous occurrence of a sequence of values.
+ The <code>moveuntil</code> (<code>movewhile</code>) functions search until a 
+boolean predicate function of the current value becomes true (false).</p>
+
+ <h4><a name="Update">Update</a></h4>
+
+ <p>Write the value at the current focus position using <code>set</code>.</p>
+
+ <p>Add new values on either side of the current focus,
+ or at the head or tail of the underlying list, using
+ <code>insert</code> and <code>inserts</code>.</p>
+
+ <p>Delete the element at the current focus position using <code>delete</code>.
+ Delete from the focus to one of the ends using the <code>truncate</code>.</p>
+
+ <p>Reverse the whole list while keeping the same focus element
+ using <code>reverse</code> - note this is constant time O(1).</p>
+
+ <h4><a name="Partial_Function_Application">Partial Function Application</a></h4>
+
+ <p>Apply a partial map function on one side of the focus using <i>map</i>.
+ Apply a partial fold on one side of the focus
+ using <i>foldl</i> and <i>foldr</i> functions.</p>
+
+ <h3><a name="Efficiency">Efficiency</a></h3>
+
+ <p>The implementation is efficient (constant time)
+ for local operations at the focus: <br>
+ <code>new, from_list/1, move, get, set, insert, inserts,
+  delete, reverse, truncate</code>.</p>
+
+ <p>Incremental operations will incur a cost proportional
+ to the distance from the focus to the target position:<br>
+ <code>from_list/2, moves, moveto, moveuntil,
+ find, finds</code>.</p>
+
+ <p>Global operations will incur a cost proportional to the
+ length of the underlying list: <br>
+ <code>to_list, size, position</code>.</p>
+
+ Maps from the focus are as efficient as <i>map</i> on lists.
+ All folds are implemented in O(n) with <i>foldl</i>; some
+ directions (<code>foldr/r</code>, <code>foldl/l</code>) also require an O(n)
+ list reverse.
+<h2><a name="types">Data Types</a></h2>
+
+<h3 class="typedecl"><a name="type-direction">direction()</a></h3>
+<p><tt>direction() = r | l</tt></p>
+
+
+<h3 class="typedecl"><a name="type-empty_yazl">empty_yazl()</a></h3>
+<p><tt>empty_yazl() = {[], []}</tt></p>
+
+
+<h3 class="typedecl"><a name="type-ending">ending()</a></h3>
+<p><tt>ending() = endr | endl</tt></p>
+
+
+<h3 class="typedecl"><a name="type-index">index()</a></h3>
+<p><tt>index() = pos_integer()</tt></p>
+
+
+<h3 class="typedecl"><a name="type-maybe">maybe()</a></h3>
+<p><tt>maybe(A) = <a href="#type-ending">ending()</a> | A</tt></p>
+
+
+<h3 class="typedecl"><a name="type-position">position()</a></h3>
+<p><tt>position() = <a href="#type-maybe">maybe</a>(<a href="#type-index">index()</a>)</tt></p>
+
+
+<h3 class="typedecl"><a name="type-predicate">predicate()</a></h3>
+<p><tt>predicate(A) = fun((A) -&gt; boolean())</tt></p>
+
+
+<h3 class="typedecl"><a name="type-yazl">yazl()</a></h3>
+<p><tt>yazl(A) = {[A], [A]}</tt></p>
+
+
+<h2><a name="index">Function Index</a></h2>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#delete-2">delete/2</a></td><td>Delete the value to the right or left of the focus.</td></tr>
+<tr><td valign="top"><a href="#ending-1">ending/1</a></td><td>Type utility: Get the end in a specific direction.</td></tr>
+<tr><td valign="top"><a href="#find-3">find/3</a></td><td>Search for the first occurrence of a value.</td></tr>
+<tr><td valign="top"><a href="#finds-3">finds/3</a></td><td>Search for the first sequence of values
+ that match a given non-empty list.</td></tr>
+<tr><td valign="top"><a href="#foldl-4">foldl/4</a></td><td>Apply a foldl from the current focus to the left or right sublist.</td></tr>
+<tr><td valign="top"><a href="#foldr-4">foldr/4</a></td><td>Apply a foldr from the current focus to the left or right sublist.</td></tr>
+<tr><td valign="top"><a href="#from_list-1">from_list/1</a></td><td>Constructor: create a yazl with focus before the first element
+ of a list.</td></tr>
+<tr><td valign="top"><a href="#from_list-2">from_list/2</a></td><td>Constructor: create a yazl with focus at the
+ beginning, at the end, or before the Ith element of a list.</td></tr>
+<tr><td valign="top"><a href="#get-2">get/2</a></td><td>Get the value of the element to the right or
+ left of the current focus.</td></tr>
+<tr><td valign="top"><a href="#insert-3">insert/3</a></td><td>Insert a value to the right or left of the current focus,
+ or at the beginning (prepend) or end (append) of the whole list.</td></tr>
+<tr><td valign="top"><a href="#inserts-3">inserts/3</a></td><td>Insert a sequence of values to the left or right
+ of the current focus, or at the beginning (prepend)
+ or end (append) of the whole list.</td></tr>
+<tr><td valign="top"><a href="#is_empty-1">is_empty/1</a></td><td>Test if a yazl is empty.</td></tr>
+<tr><td valign="top"><a href="#is_yazl-1">is_yazl/1</a></td><td>Test if a term appears to be a yazl.</td></tr>
+<tr><td valign="top"><a href="#map-3">map/3</a></td><td>Apply a map from the current focus to the left or right sublist.</td></tr>
+<tr><td valign="top"><a href="#move-2">move/2</a></td><td>Move the focus one step to the right or left.</td></tr>
+<tr><td valign="top"><a href="#moves-3">moves/3</a></td><td>Move the focus multiple steps to the right or left.</td></tr>
+<tr><td valign="top"><a href="#moveto-2">moveto/2</a></td><td>Move to the beginning or end of the list,
+ or an absolute index position within the list.</td></tr>
+<tr><td valign="top"><a href="#moveuntil-3">moveuntil/3</a></td><td>Search for the first occurrence of a value
+ that satisfies a boolean predicate function.</td></tr>
+<tr><td valign="top"><a href="#movewhile-3">movewhile/3</a></td><td>Search for the first occurrence of a value
+ that does not satisfy a boolean predicate function.</td></tr>
+<tr><td valign="top"><a href="#new-0">new/0</a></td><td>Constructor: create a new empty yazl.</td></tr>
+<tr><td valign="top"><a href="#opposite-1">opposite/1</a></td><td>Type utility: get the opposite of a direction.</td></tr>
+<tr><td valign="top"><a href="#position-2">position/2</a></td><td>Get the one-based index of the position to
+ the right or left of the current focus.</td></tr>
+<tr><td valign="top"><a href="#reverse-1">reverse/1</a></td><td>Reverse the list maintaining focus.</td></tr>
+<tr><td valign="top"><a href="#set-3">set/3</a></td><td>Set the value of the element to the right or
+ left of the current focus.</td></tr>
+<tr><td valign="top"><a href="#size-1">size/1</a></td><td>Get the length of the underlying list.</td></tr>
+<tr><td valign="top"><a href="#to_list-1">to_list/1</a></td><td>Recover the underlying list.</td></tr>
+<tr><td valign="top"><a href="#truncate-2">truncate/2</a></td><td>Delete the indicated sublist.</td></tr>
+</table>
+
+<h2><a name="functions">Function Details</a></h2>
+
+<h3 class="function"><a name="delete-2">delete/2</a></h3>
+<div class="spec">
+<p><tt>delete(X1::<a href="#type-direction">direction()</a>, X2::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
+</div><p>Delete the value to the right or left of the focus.
+ If the yazl is empty, or the focus is already
+ at the beginning or end of a list, then return <code>endr</code> or <code>endl</code>.</p>
+
+<h3 class="function"><a name="ending-1">ending/1</a></h3>
+<div class="spec">
+<p><tt>ending(X1::<a href="#type-direction">direction()</a>) -&gt; <a href="#type-ending">ending()</a></tt><br></p>
+</div><p>Type utility: Get the end in a specific direction.</p>
+
+<h3 class="function"><a name="find-3">find/3</a></h3>
+<div class="spec">
+<p><tt>find(D::<a href="#type-direction">direction()</a>, A, Z::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
+</div><p>Search for the first occurrence of a value.
+ If the search is successful, return a yazl that
+ focuses before (to the left) of the found element.
+ If the search does not find the value,
+ then it returns <code>endr</code> or <code>endl</code>.</p>
+
+<h3 class="function"><a name="finds-3">finds/3</a></h3>
+<div class="spec">
+<p><tt>finds(X1::<a href="#type-direction">direction()</a>, A::[A], Z::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
+</div><p><p>Search for the first sequence of values
+ that match a given non-empty list.
+ The target sequence always runs left-to-right,
+ even if the search is to the left (backwards).
+ If the search is successful, it returns a yazl that
+ focuses before the beginning (to the left) of the sequence.
+ If the search does not find the value,
+ then it returns <code>endr</code> or <code>endl</code>.</p>
+
+ A search for an empty list is a no-op
+ that returns the original yazl
+ (following the convention of <code>lists:prefix</code>
+  that the empty list is a prefix of all lists).</p>
+
+<h3 class="function"><a name="foldl-4">foldl/4</a></h3>
+<div class="spec">
+<p><tt>foldl(X1::<a href="#type-direction">direction()</a>, Fun::fun((A, B) -&gt; B), B, X4::<a href="#type-yazl">yazl</a>(A)) -&gt; B</tt><br></p>
+</div><p>Apply a foldl from the current focus to the left or right sublist.
+ If the yazl or its sublist is empty,
+ return the initial value of the accumulator.</p>
+
+<h3 class="function"><a name="foldr-4">foldr/4</a></h3>
+<div class="spec">
+<p><tt>foldr(X1::<a href="#type-direction">direction()</a>, Fun::fun((A, B) -&gt; B), B, X4::<a href="#type-yazl">yazl</a>(A)) -&gt; B</tt><br></p>
+</div><p>Apply a foldr from the current focus to the left or right sublist.
+ If the yazl or its sublist is empty,
+ return the initial value of the accumulator.</p>
+
+<h3 class="function"><a name="from_list-1">from_list/1</a></h3>
+<div class="spec">
+<p><tt>from_list(A::[A]) -&gt; <a href="#type-yazl">yazl</a>(A)</tt><br></p>
+</div><p>Constructor: create a yazl with focus before the first element
+ of a list. If the list is empty, the empty yazl is returned.</p>
+
+<h3 class="function"><a name="from_list-2">from_list/2</a></h3>
+<div class="spec">
+<p><tt>from_list(I::<a href="#type-position">position()</a>, A::[A]) -&gt; <a href="#type-yazl">yazl</a>(A)</tt><br></p>
+</div><p>Constructor: create a yazl with focus at the
+ beginning, at the end, or before the Ith element of a list.
+ The index is 1-based, so the first element is 1,
+ and the last index is equal to the length of the list.
+ To position at the beginning of the list, pass <code>endl</code>.
+ To position at the end of the list, pass <code>endr</code>.
+ It is an error to pass an integer less than 1,
+ or greater than the length of the list,
+ so passing 1 with the empty list is an error.
+ If the list is empty, the empty yazl is returned.</p>
+
+<h3 class="function"><a name="get-2">get/2</a></h3>
+<div class="spec">
+<p><tt>get(X1::<a href="#type-direction">direction()</a>, X2::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(A)</tt><br></p>
+</div><p>Get the value of the element to the right or
+ left of the current focus.
+ If the operation would overrun the begining or end
+ of the list, return <code>endr</code> or <code>endl</code>.</p>
+
+<h3 class="function"><a name="insert-3">insert/3</a></h3>
+<div class="spec">
+<p><tt>insert(X1::<a href="#type-direction">direction()</a> | <a href="#type-ending">ending()</a>, A, X3::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-yazl">yazl</a>(A)</tt><br></p>
+</div><p>Insert a value to the right or left of the current focus,
+ or at the beginning (prepend) or end (append) of the whole list.
+ Whether it is to the left or right
+ does not affect the final content of the list,
+ just the final position of the focus
+ relative to the inserted sequence.</p>
+
+<h3 class="function"><a name="inserts-3">inserts/3</a></h3>
+<div class="spec">
+<p><tt>inserts(X1::<a href="#type-direction">direction()</a>, A::[A], Z::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-yazl">yazl</a>(A)</tt><br></p>
+</div><p>Insert a sequence of values to the left or right
+ of the current focus, or at the beginning (prepend)
+ or end (append) of the whole list.
+ Whether it is inserted to the left or right
+ does not affect the final content of the list,
+ just the final position of the focus
+ relative to the inserted sequence.
+ Inserting an empty sequence does not change the underlying list.</p>
+
+<h3 class="function"><a name="is_empty-1">is_empty/1</a></h3>
+<div class="spec">
+<p><tt>is_empty(X1::<a href="#type-yazl">yazl</a>(term())) -&gt; boolean()</tt><br></p>
+</div><p>Test if a yazl is empty.</p>
+
+<h3 class="function"><a name="is_yazl-1">is_yazl/1</a></h3>
+<div class="spec">
+<p><tt>is_yazl(X1::term()) -&gt; boolean()</tt><br></p>
+</div><p>Test if a term appears to be a yazl.</p>
+
+<h3 class="function"><a name="map-3">map/3</a></h3>
+<div class="spec">
+<p><tt>map(X1::<a href="#type-direction">direction()</a>, Fun::fun((A) -&gt; B), X3::<a href="#type-yazl">yazl</a>(A)) -&gt; [B]</tt><br></p>
+</div><p>Apply a map from the current focus to the left or right sublist.
+ If the yazl or its sublist is empty, return the empty list.</p>
+
+<h3 class="function"><a name="move-2">move/2</a></h3>
+<div class="spec">
+<p><tt>move(X1::<a href="#type-direction">direction()</a>, X2::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
+</div><p><p>Move the focus one step to the right or left.
+ If the operation would overrun the begining or end
+ of the list, return <code>endr</code> or <code>endl</code>.</p>
+
+ Traditional function <code>next(...)</code>,
+ is equivalent to the curried form <code>move( r, ... )</code>.
+ Traditional function <code>prev(...)</code>,
+ is equivalent to the curried form <code>move( l, ... )</code>.</p>
+
+<h3 class="function"><a name="moves-3">moves/3</a></h3>
+<div class="spec">
+<p><tt>moves(D::<a href="#type-direction">direction()</a>, I::integer(), Z::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
+</div><p><p>Move the focus multiple steps to the right or left.
+ If the yazl is empty, or the steps would
+ overrun the beginning or end of the list,
+ then return <code>endr</code> or <code>endl</code>.</p>
+
+ <p>Moving a zero offset leaves the yazl unchanged.</p>
+
+ Negative offsets are converted to the equivalent positive
+ offset in the other direction, which may return an
+ unexpected opposite end value,
+ e.g. <code>moves(r,-2,Z)</code> may return <code>endl</code>.</p>
+
+<h3 class="function"><a name="moveto-2">moveto/2</a></h3>
+<div class="spec">
+<p><tt>moveto(I::<a href="#type-position">position()</a>, Z::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
+</div><p>Move to the beginning or end of the list,
+ or an absolute index position within the list.
+ The position is <code>endr</code> or <code>endl</code>,
+ or a 1-based integer signifying a index,
+ <i>i.e.</i> focus before the given index.
+ If the index offset would overrun the beginning
+ or end of the list, then return <code>endr</code> or <code>endl</code>.</p>
+
+<h3 class="function"><a name="moveuntil-3">moveuntil/3</a></h3>
+<div class="spec">
+<p><tt>moveuntil(X1::<a href="#type-direction">direction()</a>, Pred::<a href="#type-predicate">predicate</a>(A), Z::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
+</div><p>Search for the first occurrence of a value
+ that satisfies a boolean predicate function.
+ If the search is successful, it returns a yazl
+ that focuses before the found element.
+ If the search does not find the value,
+ then it returns <code>endr</code> or <code>endl</code>.
+ Note this is equivalent to <code>movewhile</code>
+ using the negation of the predicate.</p>
+
+<h3 class="function"><a name="movewhile-3">movewhile/3</a></h3>
+<div class="spec">
+<p><tt>movewhile(D::<a href="#type-direction">direction()</a>, Pred::<a href="#type-predicate">predicate</a>(A), Z::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
+</div><p>Search for the first occurrence of a value
+ that does not satisfy a boolean predicate function.
+ If the search is successful, it returns a yazl that
+ focuses before the found element.
+ If the search does not find the value,
+ then it returns <code>endr</code> or <code>endl</code>.
+ Note this is equivalent to <code>moveuntil</code>
+ using the negation of the predicate.</p>
+
+<h3 class="function"><a name="new-0">new/0</a></h3>
+<div class="spec">
+<p><tt>new() -&gt; <a href="#type-empty_yazl">empty_yazl()</a></tt><br></p>
+</div><p>Constructor: create a new empty yazl.</p>
+
+<h3 class="function"><a name="opposite-1">opposite/1</a></h3>
+<div class="spec">
+<p><tt>opposite(X1::<a href="#type-direction">direction()</a>) -&gt; <a href="#type-direction">direction()</a></tt><br></p>
+</div><p>Type utility: get the opposite of a direction.</p>
+
+<h3 class="function"><a name="position-2">position/2</a></h3>
+<div class="spec">
+<p><tt>position(X1::<a href="#type-direction">direction()</a>, X2::<a href="#type-yazl">yazl</a>(term())) -&gt; <a href="#type-position">position()</a></tt><br></p>
+</div><p><p>Get the one-based index of the position to
+ the right or left of the current focus.
+ Indices are 1-based.
+ If the yazl is empty, or focus is at the beginning of
+ a non-empty list, then the left index is <code>endl</code>.
+ If the yazl is at the end of a non-empty list,
+ then the right index is <code>endr</code>.</p>
+
+ Note that having to return a position for the empty
+ yazl breaks the symmetry.
+ The return value will be <code>endl</code>,
+ even though it is also <code>endr</code> for rightward operations.</p>
+
+<h3 class="function"><a name="reverse-1">reverse/1</a></h3>
+<div class="spec">
+<p><tt>reverse(X1::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-yazl">yazl</a>(A)</tt><br></p>
+</div><p>Reverse the list maintaining focus.
+ If the yazl is empty, the result is the empty yazl.
+ This is very fast O(1), compared to O(n) for ordinary list.</p>
+
+<h3 class="function"><a name="set-3">set/3</a></h3>
+<div class="spec">
+<p><tt>set(X1::<a href="#type-direction">direction()</a>, A, X3::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
+</div><p>Set the value of the element to the right or
+ left of the current focus.
+ If the operation would overrun the begining or end
+ of the list, return <code>endr</code> or <code>endl</code>.</p>
+
+<h3 class="function"><a name="size-1">size/1</a></h3>
+<div class="spec">
+<p><tt>size(X1::<a href="#type-yazl">yazl</a>(term())) -&gt; non_neg_integer()</tt><br></p>
+</div><p>Get the length of the underlying list.
+ If the yazl is empty, the size is 0.</p>
+
+<h3 class="function"><a name="to_list-1">to_list/1</a></h3>
+<div class="spec">
+<p><tt>to_list(X1::<a href="#type-yazl">yazl</a>(A)) -&gt; [A]</tt><br></p>
+</div><p>Recover the underlying list.
+ If the yazl is empty, the result is the empty list.</p>
+
+<h3 class="function"><a name="truncate-2">truncate/2</a></h3>
+<div class="spec">
+<p><tt>truncate(X1::<a href="#type-direction">direction()</a>, X2::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-yazl">yazl</a>(A)</tt><br></p>
+</div><p>Delete the indicated sublist.
+ If the yazl is empty, return the empty yazl.
+ For right, the focus will be positioned after the
+ last element of the left sublist.
+ For left, the focus will be positioned before the
+ first element of the right sublist.</p>
+<hr>
+
+<div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<p><i>Generated by EDoc, Jun 24 2015, 17:01:17.</i></p>
+</body>
+</html>

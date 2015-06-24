@@ -7,7 +7,6 @@ _*
 *.swp
 *.swo
 .erlang.cookie
-doc
 ebin
 log
 logs
@@ -20,5 +19,7 @@ _plugins
 _tdeps
 _build
 rebar.lock
+doc/yazl_test.html
+doc/yazl_tests.html
 
 
