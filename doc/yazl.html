@@ -6,23 +6,23 @@
 <link rel="stylesheet" type="text/css" href="stylesheet.css" title="EDoc">
 </head>
 <body bgcolor="white">
-<div class="navbar"><a name="#navbar_top"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<div class="navbar"><a name="#navbar_top"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://github.com/mike-french"><img src="dragon.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
 <hr>
 
 <h1>Module yazl</h1>
-<ul class="index"><li><a href="#description">Description</a></li><li><a href="#types">Data Types</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>YAZL '<i>yazzle</i>' (Yet Another Zipper List): 
+<ul class="index"><li><a href="#description">Description</a></li><li><a href="#types">Data Types</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>YAZL '<i>yazzle</i>' (Yet Another Zipper List):
 A mutable list with a current focus position.
 
 
-<h2><a name="description">Description</a></h2><p>YAZL '<i>yazzle</i>' (Yet Another Zipper List): 
+<h2><a name="description">Description</a></h2><p>YAZL '<i>yazzle</i>' (Yet Another Zipper List):
 A mutable list with a current focus position.</p>
 
- <p>A yazl supports operations normally found in 
-mutable doubly-linked lists, such as read, update, 
-insert, delete and incremental bi-directional traversal. 
-Local operations in the neighbourhood of the focus 
-are executed in O(1) constant time. 
-The yazl also provides global operations and index-based 
+ <p>A yazl supports operations normally found in
+mutable doubly-linked lists, such as read, update,
+insert, delete and incremental bi-directional traversal.
+Local operations in the neighbourhood of the focus
+are executed in O(1) constant time.
+The yazl also provides global operations and index-based
 random access, typically with an O(n) performance penalty.</p>
 
  <p>The focus may be between two elements of the list, or at one of the ends.
@@ -35,9 +35,9 @@ random access, typically with an O(n) performance penalty.</p>
  present in Erlang with the names <i>foldl</i>, <i>foldr</i>.</p>
 
  <p>The position of the current element is either a 1-based positive integer,
- or an end marker: <code>endl</code>, for the beginning, or <code>endr</code> for the end. 
-The current value is after (to the right of) the focus, if it exists. 
-There is no current value for empty lists, 
+ or an end marker: <code>endl</code>, for the beginning, or <code>endr</code> for the end.
+The current value is after (to the right of) the focus, if it exists.
+There is no current value for empty lists,
 or non-empty lists with the focus after the right end.</p>
 
  <p>Functions on single values and lists of values are not overloaded,
@@ -58,7 +58,7 @@ or non-empty lists with the focus after the right end.</p>
  <p>Test if the yazl is empty with <code>is_empty</code>.
  Get the total length of the underlying list using <code>size</code>.
  Read the value at the current focus position using <code>get</code>.
- Find the current focus location using <code>position</code>, 
+ Find the current focus location using <code>position</code>,
 which may return a 1-based integer index, or an ending marker.</p>
 
  <h4><a name="Move">Move</a></h4>
@@ -74,7 +74,7 @@ which may return a 1-based integer index, or an ending marker.</p>
  <p>Move the focus with <code>move</code>, <code>moves</code>, <code>moveto</code>.
  The <code>move</code> function changes focus to the next or previous elements.
  The <code>moves</code> function jumps multiple steps relative to the current focus.
- The <code>moveto</code> function jump to absolute positions based on 
+ The <code>moveto</code> function jump to absolute positions based on
 a specific index, or the beginning or end of the list.</p>
 
  <h4><a name="Search">Search</a></h4>
@@ -84,7 +84,7 @@ a specific index, or the beginning or end of the list.</p>
  The <code>find</code> function will search for the next or previous
  occurrence of a value. The <code>finds</code> function searches for the
  next or previous occurrence of a sequence of values.
- The <code>moveuntil</code> (<code>movewhile</code>) functions search until a 
+ The <code>moveuntil</code> (<code>movewhile</code>) functions search until a
 boolean predicate function of the current value becomes true (false).</p>
 
  <h4><a name="Update">Update</a></h4>
@@ -449,7 +449,7 @@ boolean predicate function of the current value becomes true (false).</p>
  first element of the right sublist.</p>
 <hr>
 
-<div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://github.com/mike-french"><img src="dragon.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
 <p><i>Generated by EDoc, Jun 24 2015, 17:01:17.</i></p>
 </body>
 </html>
