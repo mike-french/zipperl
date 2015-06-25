@@ -12,29 +12,29 @@ The interface is expressed symmetrically for forward (right) and backward (left)
 
 ## Build
 
-`rebar3 do deps, compile, dialyzer`
+&nbsp; &nbsp; `rebar3 do deps, compile, dialyzer`
 
 ## Test
 
 Tests are written using PropEr property-based testing, but invoked through EUnit wrappers, so that the rebar3 `eunit` task can be used:
 
-`rebar3 eunit`    
+&nbsp; &nbsp; `rebar3 eunit`    
 
 or invoke PropEr explicitly from the shell:
 
-`erl -pz _build/test/lib/zipperl/ebin _build/test/lib/proper/ebin`    
-`> proper:check_specs( yazl ).`     
-`> proper:module( yazl_tests ).`
+&nbsp; &nbsp; `erl -pz _build/test/lib/zipperl/ebin _build/test/lib/proper/ebin`    
+&nbsp; &nbsp; `> proper:check_specs( yazl ).`     
+&nbsp; &nbsp; `> proper:module( yazl_tests ).`
 
 ## Documentation
 
 There is a set of edoc already checked-in:
 
-yazl \[[edoc](http://rawgit.com/mike-french/zipperl/master/doc/yazl.html)\]
+&nbsp; &nbsp; yazl \[[edoc](http://rawgit.com/mike-french/zipperl/master/doc/yazl.html)\]
 
 but to regenerate use:
 
-`rebar3 edoc`
+&nbsp; &nbsp; `rebar3 edoc`
 
 ## References
 
