@@ -1,3 +1,11 @@
+%--------------------------------------------------------------------
+%
+% Copyright (c) 2015 Mike French
+%
+% This software is released under the MIT license
+% http://www.opensource.org/licenses/mit-license.php
+%
+%--------------------------------------------------------------------
 
 -module( yazl_tests ).
 
@@ -70,6 +78,8 @@ list1() -> [1]++list().
 list2() -> [2]++list1().
 list3() -> [3]++list2().
 
+-define( PRINT(MSG), io:format( user, MSG, [] ) ).
+
 % ---------------------------------------------------
 % Local utility functions
 
@@ -82,17 +92,20 @@ reflect( l,  N, N    ) -> endl;
 reflect( r,  N, IR   ) -> N - IR + 2;
 reflect( l,  N, IL   ) -> N - IL.
   
+% ===================================================
+% Tests
+
 % ---------------------------------------------------
 % new() -> empty_yazl().
 % is_yazl( term() ) -> boolean().
 
 prop_new_value() ->
-  io:format( user, "~nAn empty yazl is a tuple of 2 empty lists~n", [] ),
+  ?PRINT( "~nAn empty yazl is a tuple of 2 empty lists~n" ),
   Z = new(),
   is_yazl(Z) and (Z =:= {[],[]}).
   
 prop_to_list_empty() ->
-  io:format( user, "An empty yazl gives the empty list~n", [] ),
+  ?PRINT( "An empty yazl gives the empty list~n" ),
   Z = new(),
   is_yazl(Z) and ([] =:= to_list(Z)). 
 
@@ -101,7 +114,7 @@ prop_to_list_empty() ->
 % to_list( yazl(A) ) -> [A].
 
 prop_from_list_to_list() ->
-  io:format( user, "Roundtrip from list gives original list~n", [] ),
+  ?PRINT( "Roundtrip from list gives original list~n" ),
   ?FORALL( L, list(),
     begin
       Z = from_list( L ),
@@ -113,7 +126,7 @@ prop_from_list_to_list() ->
 % from_list( position(), [A] ) -> yazl(A).
   
 prop_from_list_i_to_list() ->
-  io:format( user, "Roundtrip from list with position gives original list~n", [] ),
+  ?PRINT( "Roundtrip from list with position gives original list~n" ),
   ?FORALL( L, list1(),
      begin
        N = length(L),
@@ -132,11 +145,11 @@ prop_from_list_i_to_list() ->
 % is_empty( yazl(_) ) -> boolean().
 
 prop_is_empty_new() ->
-  io:format( user, "An empty yazl is empty~n", [] ),
+  ?PRINT( "An empty yazl is empty~n" ),
   is_empty( new() ).
   
 prop_is_empty_not() ->
-  io:format( user, "Non-empty lists are non-empty~n", [] ),
+  ?PRINT( "Non-empty lists are non-empty~n" ),
   ?FORALL( L, list1(), 
      not is_empty( from_list(L) )
   ).
@@ -145,7 +158,7 @@ prop_is_empty_not() ->
 % size( yazl(_) ) -> non_neg_integer().
 
 prop_size_list() ->
-  io:format( user, "Size is same as length of the list~n", [] ),
+  ?PRINT( "Size is same as length of the list~n" ),
   ?FORALL( L, list(), 
      length(L) =:= size( from_list(L) ) 
   ).
@@ -154,7 +167,7 @@ prop_size_list() ->
 % position( direction(), yazl(_) ) -> position().
 
 prop_position_from_endl() ->
-  io:format( user, "Import list at endl makes positions l->endl and r->1|endr~n", [] ),
+  ?PRINT( "Import list at endl makes positions l->endl and r->1|endr~n" ),
   ?FORALL( L, list(),
      begin
        Z = from_list( endl, L ),
@@ -165,7 +178,7 @@ prop_position_from_endl() ->
   ).
 
 prop_position_from_endr() ->
-  io:format( user, "Import list at endr makes positions r->endr and l->1|endl~n", [] ),
+  ?PRINT( "Import list at endr makes positions r->endr and l->1|endl~n" ),
   ?FORALL( L, list(),
      begin
        Z = from_list( endr, L ),
@@ -176,7 +189,7 @@ prop_position_from_endr() ->
   ).
   
 prop_position_from_i() ->
-  io:format( user, "Import list at i has position r->i~n", [] ),
+  ?PRINT( "Import list at i has position r->i~n" ),
   ?FORALL( L, list1(),
      begin
        N = length(L),
@@ -190,14 +203,14 @@ prop_position_from_i() ->
 % get( direction(), yazl(A) ) -> maybe(A).
 
 prop_get_ends() ->
-  io:format( user, "Accessing past the ends does not get value~n", [] ),
+  ?PRINT( "Accessing past the ends does not get value~n" ),
   ?FORALL( L, list(),
      (endl =:= get( l, from_list(endl,L) )) and
      (endr =:= get( r, from_list(endr,L) ))
   ).
   
 prop_get_from_position() ->
-  io:format( user, "Accessor returns the value at the index~n", [] ),
+  ?PRINT( "Accessor returns the value at the index~n" ),
   ?FORALL( L, list1(),
      begin
        N = length(L),
@@ -213,7 +226,7 @@ prop_get_from_position() ->
   ).
   
 prop_get_set_insert() ->
-  io:format( user, "Accessor returns new value set or inserted~n", [] ),
+  ?PRINT( "Accessor returns new value set or inserted~n" ),
   ?FORALL( L, list1(),
      begin
        N = length(L),
@@ -231,31 +244,31 @@ prop_get_set_insert() ->
 % move( direction(), yazl(A) ) -> maybe(yazl(A)).
 
 prop_move_l_from_endl() ->
-  io:format( user, "Cannot move left from left end~n", [] ),
+  ?PRINT( "Cannot move left from left end~n" ),
   ?FORALL( L, list(),
      endl =:= move( l, from_list( endl, L ) )
   ).
   
 prop_move_r_from_endr() ->
-  io:format( user, "Cannot move right from right end~n", [] ),
+  ?PRINT( "Cannot move right from right end~n" ),
   ?FORALL( L, list(),
      endr =:= move( r, from_list( endr, L ) )
   ).
   
 prop_move_r_from_n() ->
-  io:format( user, "Move right from last element to right end~n", [] ),
+  ?PRINT( "Move right from last element to right end~n" ),
   ?FORALL( L, list1(),
      endr =:= position( r, move( r, from_list( length(L), L ) ) )
   ).
   
 prop_move_l_from_1() ->
-  io:format( user, "Move left from 2nd element to left end~n", [] ),
+  ?PRINT( "Move left from 2nd element to left end~n" ),
   ?FORALL( L, list2(),
      endl =:= position( l, move( l, from_list( 2, L ) ) )
   ).
  
 prop_move_r_increment_r() ->
-  io:format( user, "Moving right increments right position~n", [] ),
+  ?PRINT( "Moving right increments right position~n" ),
   ?FORALL( L, list2(),
      begin
        N = length(L),
@@ -269,7 +282,7 @@ prop_move_r_increment_r() ->
   ).
   
 prop_move_l_decrement_l() ->
-  io:format( user, "Moving left decrements left position~n", [] ),
+  ?PRINT( "Moving left decrements left position~n" ),
   ?FORALL( L, list3(),
      begin
        N = length(L),
@@ -283,7 +296,7 @@ prop_move_l_decrement_l() ->
   ).
   
 prop_move_r_increment_l() ->
-  io:format( user, "Moving right increments left position~n", [] ),
+  ?PRINT( "Moving right increments left position~n" ),
   ?FORALL( L, list2(),
      begin
        N = length(L),
@@ -297,7 +310,7 @@ prop_move_r_increment_l() ->
   ).
   
 prop_move_l_decrement_r() ->
-  io:format( user, "Moving left decrements right position~n", [] ),
+  ?PRINT( "Moving left decrements right position~n" ),
   ?FORALL( L, list2(),
      begin
        N = length(L),
@@ -311,7 +324,7 @@ prop_move_l_decrement_r() ->
   ).
   
 prop_move_l_r_unchanged() ->
-  io:format( user, "Moving left then right is no-op~n", [] ),
+  ?PRINT( "Moving left then right is no-op~n" ),
   ?FORALL( L, list2(),
      begin
        N = length(L),
@@ -325,7 +338,7 @@ prop_move_l_r_unchanged() ->
   ).
   
 prop_move_r_l_unchanged() ->
-  io:format( user, "Moving right then left is no-op~n", [] ),
+  ?PRINT( "Moving right then left is no-op~n" ),
   ?FORALL( L, list1(),
      begin
        N = length(L),
@@ -342,7 +355,7 @@ prop_move_r_l_unchanged() ->
 % moves( direction(), integer(), yazl(A) ) -> maybe(yazl(A)).
 
 prop_moves_negative_opposite() ->
-  io:format( user, "Moving -ve is same as moving +ve in other direction~n", [] ),
+  ?PRINT( "Moving -ve is same as moving +ve in other direction~n" ),
   ?FORALL( L, list1(),
      begin
        N = length(L),
@@ -357,14 +370,14 @@ prop_moves_negative_opposite() ->
   ).
   
 prop_moves_zero_noop() ->
-  io:format( user, "Moving by zero does not change anything~n", [] ),     
+  ?PRINT( "Moving by zero does not change anything~n" ),     
   ?FORALL( Z, yazls(),
      (Z =:= moves(r,0,Z)) and 
      (Z =:= moves(l,0,Z))
   ).
   
 prop_moves_one_move() ->
-  io:format( user, "Moving by one is same simple move~n", [] ),     
+  ?PRINT( "Moving by one is same simple move~n" ),     
   ?FORALL( Z, yazls(),
      (move(r,Z) =:= moves(r,1,Z)) and 
      (move(l,Z) =:= moves(l,1,Z))
@@ -376,21 +389,21 @@ prop_moves_one_move() ->
 % moveto( position(), yazl(A) ) -> maybe(yazl(A)).
 
 prop_moveto_end() ->
-  io:format( user, "Move to end puts you at end~n", [] ),     
+  ?PRINT( "Move to end puts you at end~n" ),     
   ?FORALL( Z, yazls(),
      (endl =:= position(l,moveto(endl,Z))) and
      (endr =:= position(r,moveto(endr,Z)))
   ).
   
 prop_moveto_past_end() ->
-  io:format( user, "Move to beyond the end returns end flag~n", [] ),     
+  ?PRINT( "Move to beyond the end returns end flag~n" ),     
   ?FORALL( Z, yazls(),
      (endl =:= moveto( -size(Z),Z)) and
      (endr =:= moveto(1+size(Z),Z))
   ).
   
 prop_moveto_index() ->
-  io:format( user, "Move to a valid index puts you at the index~n", [] ),
+  ?PRINT( "Move to a valid index puts you at the index~n" ),
   ?FORALL( L, list1(),
      begin
        N = length(L),
@@ -405,7 +418,7 @@ prop_moveto_index() ->
 % find( direction(), A, yazl(A) ) -> maybe(yazl(A)).
 
 prop_find_present_r() ->
-  io:format( user, "Simple find element to right~n", [] ),
+  ?PRINT( "Simple find element to right~n" ),
   L = [1,2,3],
   ZL = from_list( endl, L ),
   (from_list(1,L) =:= find( r, 1, ZL )) and
@@ -413,7 +426,7 @@ prop_find_present_r() ->
   (from_list(3,L) =:= find( r, 3, ZL )).
   
 prop_find_present_l() ->
-  io:format( user, "Simple find element to left~n", [] ),
+  ?PRINT( "Simple find element to left~n" ),
   L = [1,2,3],
   ZR = from_list( endr, L ),
   (from_list(1,L) =:= find( l, 1, ZR )) and
@@ -421,17 +434,21 @@ prop_find_present_l() ->
   (from_list(3,L) =:= find( l, 3, ZR )).
   
 prop_find_absent() ->
-  io:format( user, "Cannot find absent element~n", [] ),
-  L = [1,2,3],
-  ZL = from_list( endl, L ),
-  ZR = from_list( endr, L ),
-  (endr =:= find( r, 99, ZR )) and
-  (endr =:= find( r, 99, ZL )) and
-  (endl =:= find( l, 99, ZR )) and
-  (endl =:= find( l, 99, ZL )).
-  
+  ?PRINT( "Cannot find absent element~n" ),
+  ?FORALL( L99, list(),
+     begin
+       L = lists:filter( fun(X) -> X =/= 99 end, L99 ),
+       ZL = from_list( endl, L ),
+       ZR = from_list( endr, L ),
+       (endr =:= find( r, 99, ZR )) and
+       (endr =:= find( r, 99, ZL )) and
+       (endl =:= find( l, 99, ZR )) and
+       (endl =:= find( l, 99, ZL ))
+      end
+  ).
+
 prop_find_look_the_other_way() ->
-  io:format( user, "Cannot find element by looking the other way~n", [] ),
+  ?PRINT( "Cannot find element by looking the other way~n" ),
   L = [1,2,3],
   ZL = from_list( endl, L ),
   ZR = from_list( endr, L ),
@@ -442,13 +459,13 @@ prop_find_look_the_other_way() ->
 % finds( direction(), [A], yazl(A) ) -> maybe(yazl(A)).
 
 prop_finds_empty_list() ->
-  io:format( user, "Empty list is always found as prefix of every list~n", [] ),
+  ?PRINT( "Empty list is always found as prefix of every list~n" ),
   Z = new(),
   (Z =:= finds( r, [], Z )) and
   (Z =:= finds( l, [], Z )).
   
 prop_finds_nonempty_ends() ->
-  io:format( user, "Nonempty list is not found at ends~n", [] ),
+  ?PRINT( "Nonempty list is not found at ends~n" ),
   ?FORALL( L, list(),
     (endr =:= finds( r, [a], from_list( endr, L ) )) and
     (endl =:= finds( l, [a], from_list( endl, L ) ))
@@ -475,7 +492,7 @@ prop_finds_regression2() ->
 % insert( direction() | ending(), A, yazl(A) ) -> yazl(A).
 
 prop_insert_ends() ->
-  io:format( user, "Insert at the ends~n", [] ),
+  ?PRINT( "Insert at the ends~n" ),
   ?FORALL( L, list1(),
      begin
        N = length(L),
@@ -495,6 +512,58 @@ prop_insert_ends() ->
 % ---------------------------------------------------
 % delete( direction(), yazl(A) ) -> maybe(yazl(A)).
 
+prop_delete_ends() ->
+  ?PRINT( "Deleting past the ends does not succeed~n" ),
+  ?FORALL( L, list(),
+     (endl =:= delete( l, from_list(endl,L) )) and
+     (endr =:= delete( r, from_list(endr,L) ))
+  ).
+
+prop_delete_removes_r_element() ->
+  ?PRINT( "Delete removes right element~n" ),
+  ?FORALL( L, list1(),
+     begin
+       N = length(L),
+       ?FORALL( I, range(1,N),
+          begin
+            Z = from_list( I, L ),
+            lists:sublist(L,I-1) ++ lists:nthtail(I,L) =:= 
+              to_list( delete( r, Z ) )
+          end
+       )
+     end
+  ).
+  
+prop_delete_removes_l_element() ->
+  ?PRINT( "Delete removes left element~n" ),
+  ?FORALL( L, list2(),
+     begin
+       N = length(L),
+       ?FORALL( I, range(2,N),
+          begin
+            Z = from_list( I, L ),
+            lists:sublist(L,I-2) ++ lists:nthtail(I-1,L) =:= 
+              to_list( delete( l, Z ) )
+          end
+       )
+     end
+  ).
+  
+prop_delete_removes_insert() ->
+  ?PRINT( "Delete removes element~n" ),
+  ?FORALL( L, list2(),
+     begin
+       N = length(L),
+       ?FORALL( I, range(2,N),
+          begin
+            Z = from_list( I, L ),
+            (Z =:= delete( r, insert( r, 99, Z ))) and
+            (Z =:= delete( l, insert( l, 99, Z )))
+          end
+       )
+     end
+  ).
+
 % ---------------------------------------------------
 % truncate( direction(), yazl(A) ) -> yazl(A).
 
@@ -502,35 +571,35 @@ prop_insert_ends() ->
 % reverse( yazl(A) ) -> yazl(A).
 
 prop_reverse_empty() ->
-  io:format( user, "Reversing empty yazl leaves yazl unchanged~n", [] ),
+  ?PRINT( "Reversing empty yazl leaves yazl unchanged~n" ),
   new() =:= reverse( new() ).
 
 prop_reverse_single() ->
-  io:format( user, "Reversing a singleton leaves list unchanged~n", [] ),
+  ?PRINT( "Reversing a singleton leaves list unchanged~n" ),
   L = [a],
   L =:= to_list( reverse( from_list(L) ) ).
 
 prop_reverse_list() ->
-  io:format( user, "Reversing yazl reverses the underlying list~n", [] ),     
+  ?PRINT( "Reversing yazl reverses the underlying list~n" ),     
   ?FORALL( Z, yazls(),
      lists:reverse( to_list(Z) ) =:= to_list( reverse(Z) )
   ).
   
 prop_reverse_twice_identity() ->
-  io:format( user, "Reversing twice restores the original~n", [] ),     
+  ?PRINT( "Reversing twice restores the original~n" ),     
   ?FORALL( Z, yazls(),
      Z =:= reverse( reverse(Z) )
   ).
   
 prop_reverse_switches_ends() ->
-  io:format( user, "Reversing an end position switches the ending~n", [] ),
+  ?PRINT( "Reversing an end position switches the ending~n" ),
   ?FORALL( L, list(),
      (endr =:= position( r, reverse( from_list(endl,L) ) )) and
      (endl =:= position( l, reverse( from_list(endr,L) ) ))
   ).
   
 prop_reverse_switches_current_values() ->
-  io:format( user, "Reversing switches local values~n", [] ),
+  ?PRINT( "Reversing switches local values~n" ),
   ?FORALL( Z, nonempty_yazls(),
      begin
        LVal = get( l, Z ),
@@ -542,7 +611,7 @@ prop_reverse_switches_current_values() ->
   ).
   
 prop_reverse_reflects_index() ->
-  io:format( user, "Reversing reflects the index position~n", [] ),     
+  ?PRINT( "Reversing reflects the index position~n" ),     
   ?FORALL( Z, nonempty_yazls(),
      begin
        N = size( Z ),
