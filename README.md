@@ -28,7 +28,11 @@ or invoke PropEr explicitly from the shell:
 
 ## Documentation
 
-There is a set of edoc already checked-in, but to regenerate use:
+There is a set of edoc already checked-in:
+
+yazl \[[edoc](http://rawgit.com/mike-french/zipperl/master/doc/yazl.html)\]
+
+but to regenerate use:
 
 `rebar3 edoc`
 
