@@ -85,6 +85,8 @@ list3() -> [3]++list2().
 
 % reflect a position as if during a reverse
 
+reflect( r,  0, endr ) -> endr;
+reflect( l,  0, endl ) -> endl;
 reflect( r,  _, endr ) -> 1;
 reflect( l,  N, endl ) -> N;
 reflect( r,  _, 1    ) -> endr;
@@ -92,6 +94,12 @@ reflect( l,  N, N    ) -> endl;
 reflect( r,  N, IR   ) -> N - IR + 2;
 reflect( l,  N, IL   ) -> N - IL.
   
+% reflect a current value as if during a reverse
+
+flip( endr ) -> endl;
+flip( endl ) -> endr;
+flip( X )    -> X.
+
 % ===================================================
 % Tests
 
@@ -600,19 +608,19 @@ prop_reverse_switches_ends() ->
   
 prop_reverse_switches_current_values() ->
   ?PRINT( "Reversing switches local values~n" ),
-  ?FORALL( Z, nonempty_yazls(),
+  ?FORALL( Z, yazls(),
      begin
        LVal = get( l, Z ),
        RVal = get( r, Z ),
        RevZ = reverse( Z ),
-       (LVal =:= get( r, RevZ )) and 
-       (RVal =:= get( l, RevZ ))
+       (LVal =:= flip( get( r, RevZ ))) and 
+       (RVal =:= flip( get( l, RevZ )))
      end
   ).
   
 prop_reverse_reflects_index() ->
   ?PRINT( "Reversing reflects the index position~n" ),     
-  ?FORALL( Z, nonempty_yazls(),
+  ?FORALL( Z, yazls(),
      begin
        N = size( Z ),
        PosR = position( r, Z ),
