@@ -74,7 +74,7 @@ yazls() -> { list(integer()), list(integer()) }.
 nonempty_yazls() -> { non_empty(list(integer())), 
                       non_empty(list(integer())) }.
                       
-list1() -> [1]++list().
+list1() -> [1]++list(integer()).
 list2() -> [2]++list1().
 list3() -> [3]++list2().
 
@@ -99,6 +99,16 @@ reflect( l,  N, IL   ) -> N - IL.
 flip( endr ) -> endl;
 flip( endl ) -> endr;
 flip( X )    -> X.
+
+% do multiple move
+
+multi_move( _, 0, Z ) -> Z;
+multi_move( D, I, Z ) when (I > 0) -> 
+  case move(D,Z) of
+    endr -> endr;
+    endl -> endl;
+    Next -> multi_move( D, I-1, Next )
+  end.
 
 % ===================================================
 % Tests
@@ -209,6 +219,7 @@ prop_position_from_i() ->
 
 % ---------------------------------------------------
 % get( direction(), yazl(A) ) -> maybe(A).
+% set( direction(), A, yazl(A) ) -> maybe(yazl(A)).
 
 prop_get_ends() ->
   ?PRINT( "Accessing past the ends does not get value~n" ),
@@ -233,7 +244,7 @@ prop_get_from_position() ->
      end
   ).
   
-prop_get_set_insert() ->
+prop_get_set_insert_r() ->
   ?PRINT( "Accessor returns new value set or inserted~n" ),
   ?FORALL( L, list1(),
      begin
@@ -242,7 +253,9 @@ prop_get_set_insert() ->
           begin
             Z = from_list( I, L ),
             (99 =:= get(r,    set(r,99,Z) )) and
-            (99 =:= get(r, insert(r,99,Z) ))
+            (99 =:= get(r, insert(r,99,Z) )) and
+            (99 =:= get(l,    set(l,99,Z) )) and
+            (99 =:= get(l, insert(l,99,Z) ))
           end
        )
      end
@@ -391,8 +404,23 @@ prop_moves_one_move() ->
      (move(l,Z) =:= moves(l,1,Z))
   ).
   
-% TODO multi-moves
-  
+prop_moves_repeated_move() ->
+  ?PRINT( "Moves is the same as multiple move~n" ),
+  ?FORALL( L, list3(),
+     begin
+       N = length(L),
+       ?FORALL( I, range(1,N),
+          begin
+            Z = from_list(I,L),
+            ?FORALL( M, range(2,N),
+              (multi_move(r,M,Z) =:= moves(r,M,Z)) and
+              (multi_move(l,M,Z) =:= moves(l,M,Z))
+            )
+          end
+       )
+     end
+  ).
+
 % ---------------------------------------------------
 % moveto( position(), yazl(A) ) -> maybe(yazl(A)).
 
@@ -479,22 +507,26 @@ prop_finds_nonempty_ends() ->
     (endl =:= finds( l, [a], from_list( endl, L ) ))
   ).
   
-prop_finds_regression1() ->
+prop_finds_singleton() ->
   L = [a],
   from_list(endl,L) =:= finds( l, L, from_list(endr,L) ).
   
-prop_finds_regression2() ->
+prop_finds_whole_list() ->
   L = [abc],
-  from_list(endl,L) =:= finds( l, L, from_list(endr,L) ).
+  ZL = from_list(endl,L),
+  ZR = from_list(endr,L),
+  (ZL =:= finds( r, L, ZL )) and
+  (ZL =:= finds( l, L, ZR )).
 
 % ---------------------------------------------------
 % moveuntil( direction(), predicate(A), yazl(A) ) -> maybe(yazl(A)).
 
+% TODO
+
 % ---------------------------------------------------
 % movewhile( direction(), predicate(A), yazl(A) ) -> maybe(yazl(A)).
 
-% ---------------------------------------------------
-% set( direction(), A, yazl(A) ) -> maybe(yazl(A)).
+% TODO
 
 % ---------------------------------------------------
 % insert( direction() | ending(), A, yazl(A) ) -> yazl(A).
@@ -516,6 +548,8 @@ prop_insert_ends() ->
 
 % ---------------------------------------------------
 % inserts( direction(), [A], yazl(A) ) -> yazl(A).
+
+% TODO
 
 % ---------------------------------------------------
 % delete( direction(), yazl(A) ) -> maybe(yazl(A)).
@@ -574,6 +608,37 @@ prop_delete_removes_insert() ->
 
 % ---------------------------------------------------
 % truncate( direction(), yazl(A) ) -> yazl(A).
+
+prop_truncate_empty() ->
+  ?PRINT( "Truncate empty yazl is no-op~n" ),
+  Z = new(),
+  (Z =:= truncate(r,Z)) and
+  (Z =:= truncate(l,Z)).
+
+prop_truncate_at_r_end() ->
+  ?PRINT( "Truncate at right end is no-op~n" ),
+  ?FORALL( L, list1(),
+     begin
+       Z = from_list( endr, L ),
+       Z =:= truncate( r, Z )
+     end
+  ).
+  
+prop_truncate_at_l_end() ->
+  ?PRINT( "Truncate at left end is no-op~n" ),
+  ?FORALL( L, list1(),
+     begin
+       Z = from_list( endl, L ),
+       Z =:= truncate( l, Z )
+     end
+  ).
+  
+prop_truncate_end_position() ->
+  ?PRINT( "Truncate always creates an end position~n" ),
+  ?FORALL( Z, nonempty_yazls(),
+     (endl =:= position( l, truncate( l, Z ))) and
+     (endr =:= position( r, truncate( r, Z )))
+  ).
 
 % ---------------------------------------------------
 % reverse( yazl(A) ) -> yazl(A).
@@ -636,11 +701,38 @@ prop_reverse_reflects_index() ->
 % ---------------------------------------------------
 % map( direction(), fun((A)->B), yazl(A) ) -> [B].
 
+prop_map_empty() ->
+  ?PRINT( "Map empty is empty~n" ),
+  F = fun(X) -> 2*X end,
+  Z = new(),
+  is_empty(Z) and 
+  ([] =:= map(r,F,Z)) and
+  ([] =:= map(l,F,Z)).
+  
+prop_map_l_r() ->
+  ?PRINT( "Map both directions is same as map on list~n" ),
+  ?FORALL( L, list1(),
+     begin
+       N = length(L),
+       ?FORALL( I, range(1,N),
+          begin
+            F = fun(X) -> 2*X end,
+            Z = from_list( I, L ),
+            lists:map(F,L) =:= map(l,F,Z) ++ map(r,F,Z)
+          end
+       )
+     end
+  ).
+
 % ---------------------------------------------------
 % foldl( direction(), fun((A,B)->B), B, yazl(A) ) -> B.
 
+% TODO
+
 % ---------------------------------------------------
 % foldr( direction(), fun((A,B)->B), B, yazl(A) ) -> B.
+
+% TODO
 
 %====================================================================
 
