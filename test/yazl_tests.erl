@@ -246,10 +246,10 @@ prop_get_from_position() ->
   
 prop_get_set_insert_r() ->
   ?PRINT( "Accessor returns new value set or inserted~n" ),
-  ?FORALL( L, list1(),
+  ?FORALL( L, list2(),
      begin
        N = length(L),
-       ?FORALL( I, range(1,N),
+       ?FORALL( I, range(2,N),
           begin
             Z = from_list( I, L ),
             (99 =:= get(r,    set(r,99,Z) )) and
