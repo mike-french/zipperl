@@ -577,10 +577,8 @@ truncate( l, {_,R} ) -> {[],R }.
 % ---------------------------------------------------
 % @doc Reverse the list maintaining focus.
 % If the yazl is empty, the result is the empty yazl.
-% If the focus is not empty, then keeping the same focus
-% will change the current element, because the neighbours
-% have changed position: the next right element has become
-% the previous left element, and vice versa.
+% If the yazl is not empty, the current values to the
+% right and left will be switched
 % This is fast constant time O(1), compared to O(n) for ordinary list.
 
 -spec reverse( yazl(A) ) -> yazl(A).

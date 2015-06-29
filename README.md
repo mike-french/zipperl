@@ -12,29 +12,31 @@ The interface is expressed symmetrically for forward (right) and backward (left)
 
 ## Build
 
-`rebar3 do deps, compile, dialyzer`
+Build using rebar3 \[[home](http://www.rebar3.org/)\]\[[github](http://github.com/rebar/rebar3)\]
+
+&nbsp; &nbsp; `rebar3 do deps, compile, dialyzer`
 
 ## Test
 
-Tests are written using PropEr property-based testing, but invoked through EUnit wrappers, so that the rebar3 `eunit` task can be used:
+Tests are written using PropEr \[[home](http://proper.softlab.ntua.gr/)\] property-based testing, but invoked through EUnit \[[home](http://www.erlang.org/doc/apps/eunit/chapter.html)\] wrappers, so that the rebar3 `eunit` task can be used:
 
-`rebar3 eunit`    
+&nbsp; &nbsp; `rebar3 eunit`    
 
 or invoke PropEr explicitly from the shell:
 
-`erl -pz _build/test/lib/zipperl/ebin _build/test/lib/proper/ebin`    
-`> proper:check_specs( yazl ).`     
-`> proper:module( yazl_tests ).`
+&nbsp; &nbsp; `erl -pz _build/test/lib/zipperl/ebin _build/test/lib/proper/ebin`    
+&nbsp; &nbsp; `> proper:check_specs( yazl ).`     
+&nbsp; &nbsp; `> proper:module( yazl_tests ).`
 
 ## Documentation
 
 There is a set of edoc already checked-in:
 
-yazl \[[edoc](http://rawgit.com/mike-french/zipperl/master/doc/yazl.html)\]
+&nbsp; &nbsp; yazl \[[edoc](http://rawgit.com/mike-french/zipperl/master/doc/yazl.html)\]
 
 but to regenerate use:
 
-`rebar3 edoc`
+&nbsp; &nbsp; `rebar3 edoc`
 
 ## References
 
@@ -42,7 +44,7 @@ but to regenerate use:
 \[2\] _The Derivative of a Regular Type is its Type of One-Hole Contexts_, Conor McBride \[[pdf](http://strictlypositive.org/diff.pdf)\]    
 \[3\] _Zippers_, Pavel Pancheka \[[html](https://pavpanchekha.com/blog/zippers/huet.html)\]    
 \[4\] _Yet Another Article on Zippers, in Erlang_, Fred Hébert \[[html](http://ferd.ca/yet-another-article-on-zippers.html)\]    
-\[5\] _Zippers_, Fred Hébert \[[GitHub](https://github.com/ferd/zippers)\]
+\[5\] _Zippers_, Fred Hébert \[[github](https://github.com/ferd/zippers)\]
 
 
 
