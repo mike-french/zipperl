@@ -12,11 +12,13 @@ The interface is expressed symmetrically for forward (right) and backward (left)
 
 ## Build
 
+Build using rebar3 \[[home](http://www.rebar3.org/)\]\[[github](http://github.com/rebar/rebar3)\]
+
 &nbsp; &nbsp; `rebar3 do deps, compile, dialyzer`
 
 ## Test
 
-Tests are written using PropEr property-based testing, but invoked through EUnit wrappers, so that the rebar3 `eunit` task can be used:
+Tests are written using PropEr \[[home](http://proper.softlab.ntua.gr/)\] property-based testing, but invoked through EUnit \[[home](http://www.erlang.org/doc/apps/eunit/chapter.html)\] wrappers, so that the rebar3 `eunit` task can be used:
 
 &nbsp; &nbsp; `rebar3 eunit`    
 
@@ -42,7 +44,7 @@ but to regenerate use:
 \[2\] _The Derivative of a Regular Type is its Type of One-Hole Contexts_, Conor McBride \[[pdf](http://strictlypositive.org/diff.pdf)\]    
 \[3\] _Zippers_, Pavel Pancheka \[[html](https://pavpanchekha.com/blog/zippers/huet.html)\]    
 \[4\] _Yet Another Article on Zippers, in Erlang_, Fred Hébert \[[html](http://ferd.ca/yet-another-article-on-zippers.html)\]    
-\[5\] _Zippers_, Fred Hébert \[[GitHub](https://github.com/ferd/zippers)\]
+\[5\] _Zippers_, Fred Hébert \[[github](https://github.com/ferd/zippers)\]
 
 
 
