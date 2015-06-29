@@ -93,7 +93,7 @@
 % Delete the element at the current focus position using `delete'.
 % Delete from the focus to one of the ends using the `truncate'.
 %
-% Reverse the whole list while keeping the same focus element
+% Reverse the whole list while keeping the same focus
 % using `reverse' - note this is constant time O(1).
 %
 % === Partial Function Application ===
@@ -171,6 +171,9 @@
 % ===================================================
 % Types
 
+% WARNING: ending 'l' is ambiguous with '1', 
+%          could use 'rdir', 'ldir' ?
+
 % A yazl is a tuple of two lists.
 -type yazl(A) :: { [A], [A] }.
 
@@ -178,7 +181,7 @@
 -type empty_yazl() :: { [], [] }.
 
 % Directions are rightward and leftward.
--type direction() :: r | l.
+-type direction() :: r | l.    
 
 % A position off the beginning or end of the list.
 -type ending() :: endr | endl.
@@ -278,6 +281,7 @@ is_empty( { _,_ } ) -> false.
 % ---------------------------------------------------
 % @doc Get the length of the underlying list.
 % If the yazl is empty, the size is 0.
+% The performance is O(n).
 
 -spec size( yazl(_) ) -> non_neg_integer().
 
@@ -291,11 +295,9 @@ size( {L,R} ) -> length(L) + length(R).
 % a non-empty list, then the left index is `endl'.
 % If the yazl is at the end of a non-empty list, 
 % then the right index is `endr'.
-%
-% Note that having to return a position for the empty
-% yazl breaks the symmetry. 
-% The return value will be `endl', 
-% even though it is also `endr' for rightward operations.
+% The performance is proportional to the position in the list.
+% If the focus is at `endl' it is O(1), 
+% but if the focus is at the last element, it is O(n).
 
 -spec position( direction(), yazl(_) ) -> position().
 
@@ -308,6 +310,9 @@ position( r, { L,_ } ) -> length(L) + 1.
 % ---------------------------------------------------
 % @doc Recover the underlying list.
 % If the yazl is empty, the result is the empty list.
+% The cost is proportional to the position in the list.
+% If the focus is at `endl' it is O(1), 
+% but if the focus is at `endl' it is O(n).
 
 -spec to_list( yazl(A) ) -> [A].
 
@@ -319,6 +324,7 @@ to_list( { L,R } ) -> lists:reverse( L, R ).
 % left of the current focus.
 % If the operation would overrun the begining or end
 % of the list, return `endr' or `endl'.
+% This is fast constant time O(1).
 
 -spec get( direction(), yazl(A) ) -> maybe(A).
 
@@ -339,6 +345,7 @@ get( l, {[H|_],_} ) -> H.
 % is equivalent to the curried form `move( r, ... )'.
 % Traditional function `prev(...)', 
 % is equivalent to the curried form `move( l, ... )'.
+% This is fast constant time O(1).
 
 -spec move( direction(), yazl(A) ) -> maybe(yazl(A)).
 
@@ -497,6 +504,7 @@ movewhile( D, Pred, Z ) ->
 % left of the current focus.
 % If the operation would overrun the begining or end
 % of the list, return `endr' or `endl'.
+% This is fast constant time O(1).
 
 -spec set( direction(), A, yazl(A) ) -> maybe(yazl(A)).
 
@@ -512,6 +520,7 @@ set( l, V, {[_|LT],R} ) -> {[V|LT],R }.
 % does not affect the final content of the list, 
 % just the final position of the focus
 % relative to the inserted sequence.
+% This is fast constant time O(1).
 
 -spec insert( direction() | ending(), A, yazl(A) ) -> yazl(A).
 
@@ -542,6 +551,7 @@ inserts( endl, Vs,  {L,R} ) -> { L++lists:reverse(Vs), R     }.
 % @doc Delete the value to the right or left of the focus.
 % If the yazl is empty, or the focus is already
 % at the beginning or end of a list, then return `endr' or `endl'.
+% This is fast constant time O(1).
 
 -spec delete( direction(), yazl(A) ) -> maybe(yazl(A)).
 
@@ -557,6 +567,7 @@ delete( l, {[_|LT],R} ) -> {LT,R }.
 % last element of the left sublist.
 % For left, the focus will be positioned before the 
 % first element of the right sublist.
+% This is fast constant time O(1).
 
 -spec truncate( direction(), yazl(A) ) -> yazl(A).
 
@@ -566,7 +577,11 @@ truncate( l, {_,R} ) -> {[],R }.
 % ---------------------------------------------------
 % @doc Reverse the list maintaining focus.
 % If the yazl is empty, the result is the empty yazl.
-% This is very fast O(1), compared to O(n) for ordinary list.
+% If the focus is not empty, then keeping the same focus
+% will change the current element, because the neighbours
+% have changed position: the next right element has become
+% the previous left element, and vice versa.
+% This is fast constant time O(1), compared to O(n) for ordinary list.
 
 -spec reverse( yazl(A) ) -> yazl(A).
 
