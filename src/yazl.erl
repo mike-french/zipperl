@@ -96,11 +96,9 @@
 % Reverse the whole list while keeping the same focus
 % using `reverse' - note this is constant time O(1).
 %
-% === Partial Function Application ===
+% === Function Application ===
 %
-% Apply a partial map function on one side of the focus using <i>map</i>.
-% Apply a partial fold on one side of the focus
-% using <i>foldl</i> and <i>foldr</i> functions.
+% Apply a <i>map</i> function while leaving the focus unchanged. 
 %
 % == Efficiency ==
 %
@@ -133,15 +131,13 @@
    ending/1,
    find/3,
    finds/3,
-   foldl/4,
-   foldr/4,
    from_list/1, from_list/2,
    get/2,
    insert/3, 
    inserts/3,
    is_yazl/1,
    is_empty/1,
-   map/3,
+   map/2,
    move/2, 
    moves/3,
    moveto/2,
@@ -589,32 +585,11 @@ reverse( {L,R} ) -> {R,L}.
 % Partial Function Application
 
 % ---------------------------------------------------
-% @doc Apply a map from the current focus to the left or right sublist.
-% If the yazl or its sublist is empty, return the empty list.
+% @doc Apply a map while leaving the focus unchanged.
+% If the yazl is empty it will be unchanged.
 
--spec map( direction(), fun((A)->B), yazl(A) ) -> [B].
+-spec map( fun((A)->B), yazl(A) ) -> yazl(B).
 
-map( r, Fun, {_,R} ) -> lists:map( Fun, R );
-map( l, Fun, {L,_} ) -> lists:map( Fun, lists:reverse(L) ).
-
-% ---------------------------------------------------
-% @doc Apply a foldl from the current focus to the left or right sublist.
-% If the yazl or its sublist is empty, 
-% return the initial value of the accumulator.
-
--spec foldl( direction(), fun((A,B)->B), B, yazl(A) ) -> B.
-
-foldl( r, Fun, Init, {_,R} ) -> lists:foldl( Fun, Init, R );
-foldl( l, Fun, Init, {L,_} ) -> lists:foldl( Fun, Init, lists:reverse(L) ).
-
-% ---------------------------------------------------
-% @doc Apply a foldr from the current focus to the left or right sublist.
-% If the yazl or its sublist is empty, 
-% return the initial value of the accumulator.
-
--spec foldr( direction(), fun((A,B)->B), B, yazl(A) ) -> B.
-
-foldr( r, Fun, Init, {_,R} ) -> lists:foldl( Fun, Init, lists:reverse(R) );
-foldr( l, Fun, Init, {L,_} ) -> lists:foldl( Fun, Init, L ).
+map( Fun, {L,R} ) -> { lists:map(Fun,L), lists:map(Fun,R) }.
 
 %====================================================================
