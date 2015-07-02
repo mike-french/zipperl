@@ -6,7 +6,7 @@
 <link rel="stylesheet" type="text/css" href="stylesheet.css" title="EDoc">
 </head>
 <body bgcolor="white">
-<div class="navbar"><a name="#navbar_top"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://github.com/mike-french"><img src="dragon.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<div class="navbar"><a name="#navbar_top"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://github.com/mike-french/zipperl"><img src="dragon.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
 <hr>
 
 <h1>Module yazl</h1>
@@ -98,14 +98,12 @@ boolean predicate function of the current value becomes true (false).</p>
  <p>Delete the element at the current focus position using <code>delete</code>.
  Delete from the focus to one of the ends using the <code>truncate</code>.</p>
 
- <p>Reverse the whole list while keeping the same focus element
+ <p>Reverse the whole list while keeping the same focus
  using <code>reverse</code> - note this is constant time O(1).</p>
 
- <h4><a name="Partial_Function_Application">Partial Function Application</a></h4>
+ <h4><a name="Function_Application">Function Application</a></h4>
 
- <p>Apply a partial map function on one side of the focus using <i>map</i>.
- Apply a partial fold on one side of the focus
- using <i>foldl</i> and <i>foldr</i> functions.</p>
+ <p>Apply a <i>map</i> function while leaving the focus unchanged.</p>
 
  <h3><a name="Efficiency">Efficiency</a></h3>
 
@@ -119,14 +117,9 @@ boolean predicate function of the current value becomes true (false).</p>
  <code>from_list/2, moves, moveto, moveuntil,
  find, finds</code>.</p>
 
- <p>Global operations will incur a cost proportional to the
+ Global operations will incur a cost proportional to the
  length of the underlying list: <br>
- <code>to_list, size, position</code>.</p>
-
- Maps from the focus are as efficient as <i>map</i> on lists.
- All folds are implemented in O(n) with <i>foldl</i>; some
- directions (<code>foldr/r</code>, <code>foldl/l</code>) also require an O(n)
- list reverse.
+ <code>to_list, size, position</code>.
 <h2><a name="types">Data Types</a></h2>
 
 <h3 class="typedecl"><a name="type-direction">direction()</a></h3>
@@ -167,8 +160,6 @@ boolean predicate function of the current value becomes true (false).</p>
 <tr><td valign="top"><a href="#find-3">find/3</a></td><td>Search for the first occurrence of a value.</td></tr>
 <tr><td valign="top"><a href="#finds-3">finds/3</a></td><td>Search for the first sequence of values
  that match a given non-empty list.</td></tr>
-<tr><td valign="top"><a href="#foldl-4">foldl/4</a></td><td>Apply a foldl from the current focus to the left or right sublist.</td></tr>
-<tr><td valign="top"><a href="#foldr-4">foldr/4</a></td><td>Apply a foldr from the current focus to the left or right sublist.</td></tr>
 <tr><td valign="top"><a href="#from_list-1">from_list/1</a></td><td>Constructor: create a yazl with focus before the first element
  of a list.</td></tr>
 <tr><td valign="top"><a href="#from_list-2">from_list/2</a></td><td>Constructor: create a yazl with focus at the
@@ -182,7 +173,7 @@ boolean predicate function of the current value becomes true (false).</p>
  or end (append) of the whole list.</td></tr>
 <tr><td valign="top"><a href="#is_empty-1">is_empty/1</a></td><td>Test if a yazl is empty.</td></tr>
 <tr><td valign="top"><a href="#is_yazl-1">is_yazl/1</a></td><td>Test if a term appears to be a yazl.</td></tr>
-<tr><td valign="top"><a href="#map-3">map/3</a></td><td>Apply a map from the current focus to the left or right sublist.</td></tr>
+<tr><td valign="top"><a href="#map-2">map/2</a></td><td>Apply a map while leaving the focus unchanged.</td></tr>
 <tr><td valign="top"><a href="#move-2">move/2</a></td><td>Move the focus one step to the right or left.</td></tr>
 <tr><td valign="top"><a href="#moves-3">moves/3</a></td><td>Move the focus multiple steps to the right or left.</td></tr>
 <tr><td valign="top"><a href="#moveto-2">moveto/2</a></td><td>Move to the beginning or end of the list,
@@ -210,7 +201,8 @@ boolean predicate function of the current value becomes true (false).</p>
 <p><tt>delete(X1::<a href="#type-direction">direction()</a>, X2::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
 </div><p>Delete the value to the right or left of the focus.
  If the yazl is empty, or the focus is already
- at the beginning or end of a list, then return <code>endr</code> or <code>endl</code>.</p>
+ at the beginning or end of a list, then return <code>endr</code> or <code>endl</code>.
+ This is fast constant time O(1).</p>
 
 <h3 class="function"><a name="ending-1">ending/1</a></h3>
 <div class="spec">
@@ -243,20 +235,6 @@ boolean predicate function of the current value becomes true (false).</p>
  (following the convention of <code>lists:prefix</code>
   that the empty list is a prefix of all lists).</p>
 
-<h3 class="function"><a name="foldl-4">foldl/4</a></h3>
-<div class="spec">
-<p><tt>foldl(X1::<a href="#type-direction">direction()</a>, Fun::fun((A, B) -&gt; B), B, X4::<a href="#type-yazl">yazl</a>(A)) -&gt; B</tt><br></p>
-</div><p>Apply a foldl from the current focus to the left or right sublist.
- If the yazl or its sublist is empty,
- return the initial value of the accumulator.</p>
-
-<h3 class="function"><a name="foldr-4">foldr/4</a></h3>
-<div class="spec">
-<p><tt>foldr(X1::<a href="#type-direction">direction()</a>, Fun::fun((A, B) -&gt; B), B, X4::<a href="#type-yazl">yazl</a>(A)) -&gt; B</tt><br></p>
-</div><p>Apply a foldr from the current focus to the left or right sublist.
- If the yazl or its sublist is empty,
- return the initial value of the accumulator.</p>
-
 <h3 class="function"><a name="from_list-1">from_list/1</a></h3>
 <div class="spec">
 <p><tt>from_list(A::[A]) -&gt; <a href="#type-yazl">yazl</a>(A)</tt><br></p>
@@ -283,7 +261,8 @@ boolean predicate function of the current value becomes true (false).</p>
 </div><p>Get the value of the element to the right or
  left of the current focus.
  If the operation would overrun the begining or end
- of the list, return <code>endr</code> or <code>endl</code>.</p>
+ of the list, return <code>endr</code> or <code>endl</code>.
+ This is fast constant time O(1).</p>
 
 <h3 class="function"><a name="insert-3">insert/3</a></h3>
 <div class="spec">
@@ -293,7 +272,8 @@ boolean predicate function of the current value becomes true (false).</p>
  Whether it is to the left or right
  does not affect the final content of the list,
  just the final position of the focus
- relative to the inserted sequence.</p>
+ relative to the inserted sequence.
+ This is fast constant time O(1).</p>
 
 <h3 class="function"><a name="inserts-3">inserts/3</a></h3>
 <div class="spec">
@@ -317,11 +297,11 @@ boolean predicate function of the current value becomes true (false).</p>
 <p><tt>is_yazl(X1::term()) -&gt; boolean()</tt><br></p>
 </div><p>Test if a term appears to be a yazl.</p>
 
-<h3 class="function"><a name="map-3">map/3</a></h3>
+<h3 class="function"><a name="map-2">map/2</a></h3>
 <div class="spec">
-<p><tt>map(X1::<a href="#type-direction">direction()</a>, Fun::fun((A) -&gt; B), X3::<a href="#type-yazl">yazl</a>(A)) -&gt; [B]</tt><br></p>
-</div><p>Apply a map from the current focus to the left or right sublist.
- If the yazl or its sublist is empty, return the empty list.</p>
+<p><tt>map(Fun::fun((A) -&gt; B), X2::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-yazl">yazl</a>(B)</tt><br></p>
+</div><p>Apply a map while leaving the focus unchanged.
+ If the yazl is empty it will be unchanged.</p>
 
 <h3 class="function"><a name="move-2">move/2</a></h3>
 <div class="spec">
@@ -333,7 +313,8 @@ boolean predicate function of the current value becomes true (false).</p>
  Traditional function <code>next(...)</code>,
  is equivalent to the curried form <code>move( r, ... )</code>.
  Traditional function <code>prev(...)</code>,
- is equivalent to the curried form <code>move( l, ... )</code>.</p>
+ is equivalent to the curried form <code>move( l, ... )</code>.
+ This is fast constant time O(1).</p>
 
 <h3 class="function"><a name="moves-3">moves/3</a></h3>
 <div class="spec">
@@ -398,25 +379,25 @@ boolean predicate function of the current value becomes true (false).</p>
 <h3 class="function"><a name="position-2">position/2</a></h3>
 <div class="spec">
 <p><tt>position(X1::<a href="#type-direction">direction()</a>, X2::<a href="#type-yazl">yazl</a>(term())) -&gt; <a href="#type-position">position()</a></tt><br></p>
-</div><p><p>Get the one-based index of the position to
+</div><p>Get the one-based index of the position to
  the right or left of the current focus.
  Indices are 1-based.
  If the yazl is empty, or focus is at the beginning of
  a non-empty list, then the left index is <code>endl</code>.
  If the yazl is at the end of a non-empty list,
- then the right index is <code>endr</code>.</p>
-
- Note that having to return a position for the empty
- yazl breaks the symmetry.
- The return value will be <code>endl</code>,
- even though it is also <code>endr</code> for rightward operations.</p>
+ then the right index is <code>endr</code>.
+ The performance is proportional to the position in the list.
+ If the focus is at <code>endl</code> it is O(1),
+ but if the focus is at the last element, it is O(n).</p>
 
 <h3 class="function"><a name="reverse-1">reverse/1</a></h3>
 <div class="spec">
 <p><tt>reverse(X1::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-yazl">yazl</a>(A)</tt><br></p>
 </div><p>Reverse the list maintaining focus.
  If the yazl is empty, the result is the empty yazl.
- This is very fast O(1), compared to O(n) for ordinary list.</p>
+ If the yazl is not empty, the current values to the
+ right and left will be switched
+ This is fast constant time O(1), compared to O(n) for ordinary list.</p>
 
 <h3 class="function"><a name="set-3">set/3</a></h3>
 <div class="spec">
@@ -424,19 +405,24 @@ boolean predicate function of the current value becomes true (false).</p>
 </div><p>Set the value of the element to the right or
  left of the current focus.
  If the operation would overrun the begining or end
- of the list, return <code>endr</code> or <code>endl</code>.</p>
+ of the list, return <code>endr</code> or <code>endl</code>.
+ This is fast constant time O(1).</p>
 
 <h3 class="function"><a name="size-1">size/1</a></h3>
 <div class="spec">
 <p><tt>size(X1::<a href="#type-yazl">yazl</a>(term())) -&gt; non_neg_integer()</tt><br></p>
 </div><p>Get the length of the underlying list.
- If the yazl is empty, the size is 0.</p>
+ If the yazl is empty, the size is 0.
+ The performance is O(n).</p>
 
 <h3 class="function"><a name="to_list-1">to_list/1</a></h3>
 <div class="spec">
 <p><tt>to_list(X1::<a href="#type-yazl">yazl</a>(A)) -&gt; [A]</tt><br></p>
 </div><p>Recover the underlying list.
- If the yazl is empty, the result is the empty list.</p>
+ If the yazl is empty, the result is the empty list.
+ The cost is proportional to the position in the list.
+ If the focus is at <code>endl</code> it is O(1),
+ but if the focus is at <code>endl</code> it is O(n).</p>
 
 <h3 class="function"><a name="truncate-2">truncate/2</a></h3>
 <div class="spec">
@@ -446,10 +432,11 @@ boolean predicate function of the current value becomes true (false).</p>
  For right, the focus will be positioned after the
  last element of the left sublist.
  For left, the focus will be positioned before the
- first element of the right sublist.</p>
+ first element of the right sublist.
+ This is fast constant time O(1).</p>
 <hr>
 
-<div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://github.com/mike-french"><img src="dragon.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
-<p><i>Generated by EDoc, Jun 24 2015, 17:01:17.</i></p>
+<div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://github.com/mike-french/zipperl"><img src="dragon.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<p><i>Generated by EDoc, Jul 2 2015, 22:00:07.</i></p>
 </body>
 </html>
