@@ -115,11 +115,6 @@
 % Global operations will incur a cost proportional to the
 % length of the underlying list: <br/>
 % `to_list, size, position'.
-%
-% Maps from the focus are as efficient as <i>map</i> on lists.
-% All folds are implemented in O(n) with <i>foldl</i>; some 
-% directions (`foldr/r', `foldl/l') also require an O(n) 
-% list reverse.
 
 -module('yazl').
 
