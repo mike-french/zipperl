@@ -54,12 +54,6 @@
 -define( FORMAT(FMT,ARGS), io:format( user, FMT, ARGS ) ).
 
 % ---------------------------------------------------
-% Performance test parameters
-
--define(   SIZE, 100000 ).
--define( REPEAT,     20 ).
-
-% ---------------------------------------------------
 % EUnit wrappers
 
 proper_spec_test_() ->
@@ -81,22 +75,8 @@ proper_func_test_() ->
     )
   }.
   
-perf_test() ->
-  delim(),
-  ?FORMAT( "Performance Tests:  Size ~p   Repeat ~p~n", [?SIZE,?REPEAT] ),
-  delim(),
-  perf_create(),
-  delim(),
-  perf_move(),
-  delim(),
-  perf_fill(),
-  delim(),
-  perf_insert(),
-  delim(),
-  perf_map(),
-  delim(),
-  perf_find(),
-  delim().
+perf_test_() ->
+  {timeout, 300, fun performance_all/0 }.
   
 % ---------------------------------------------------
 % PropEr utility types and generators
@@ -754,6 +734,26 @@ prop_map_as_list() ->
 
 % ===================================================
 % Performance Tests
+
+-define(   SIZE, 100000 ).
+-define( REPEAT,     20 ).
+
+performance_all() ->
+  delim(),
+  ?FORMAT( "Performance Tests:  Size ~p   Repeat ~p~n", [?SIZE,?REPEAT] ),
+  delim(),
+  perf_create(),
+  delim(),
+  perf_move(),
+  delim(),
+  perf_fill(),
+  delim(),
+  perf_insert(),
+  delim(),
+  perf_map(),
+  delim(),
+  perf_find(),
+  delim().
 
 perf_create() ->
   Len   = ?SIZE,
