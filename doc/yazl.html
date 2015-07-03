@@ -49,7 +49,7 @@ or non-empty lists with the focus after the right end.</p>
 
  <h4><a name="Create,_Import,_Export">Create, Import, Export</a></h4>
 
- <p>Create yazls from lists using <code>new</code> and <code>from_list</code>.
+ <p>Create yazls from lists using <code>new</code>, <code>from_list</code> and <code>from_lists</code>.
  Test if a term appears to be a yazl with <code>is_yazl</code>.
  Recover the underlying list with <code>to_list</code>.</p>
 
@@ -107,18 +107,18 @@ boolean predicate function of the current value becomes true (false).</p>
 
  <h3><a name="Efficiency">Efficiency</a></h3>
 
- <p>The implementation is efficient (constant time)
+ <p>The implementation is efficient constant time, O(1):
  for local operations at the focus: <br>
- <code>new, from_list/1, move, get, set, insert, inserts,
+ <code>new, from_list/1, move, get, set, insert,
   delete, reverse, truncate</code>.</p>
 
  <p>Incremental operations will incur a cost proportional
  to the distance from the focus to the target position:<br>
- <code>from_list/2, moves, moveto, moveuntil,
- find, finds</code>.</p>
+ <code>from_list/2, from_lists, moves, moveto, moveuntil,
+ find, finds, inserts</code>.</p>
 
  Global operations will incur a cost proportional to the
- length of the underlying list: <br>
+ length of the underlying list O(n): <br>
  <code>to_list, size, position</code>.
 <h2><a name="types">Data Types</a></h2>
 
@@ -164,6 +164,7 @@ boolean predicate function of the current value becomes true (false).</p>
  of a list.</td></tr>
 <tr><td valign="top"><a href="#from_list-2">from_list/2</a></td><td>Constructor: create a yazl with focus at the
  beginning, at the end, or before the Ith element of a list.</td></tr>
+<tr><td valign="top"><a href="#from_lists-2">from_lists/2</a></td><td>Constructor: create a yazl with focus between two sublists.</td></tr>
 <tr><td valign="top"><a href="#get-2">get/2</a></td><td>Get the value of the element to the right or
  left of the current focus.</td></tr>
 <tr><td valign="top"><a href="#insert-3">insert/3</a></td><td>Insert a value to the right or left of the current focus,
@@ -191,6 +192,7 @@ boolean predicate function of the current value becomes true (false).</p>
  left of the current focus.</td></tr>
 <tr><td valign="top"><a href="#size-1">size/1</a></td><td>Get the length of the underlying list.</td></tr>
 <tr><td valign="top"><a href="#to_list-1">to_list/1</a></td><td>Recover the underlying list.</td></tr>
+<tr><td valign="top"><a href="#to_lists-1">to_lists/1</a></td><td>Recover the underlying sublists before and after the focus.</td></tr>
 <tr><td valign="top"><a href="#truncate-2">truncate/2</a></td><td>Delete the indicated sublist.</td></tr>
 </table>
 
@@ -214,7 +216,8 @@ boolean predicate function of the current value becomes true (false).</p>
 <p><tt>find(Dir::<a href="#type-direction">direction()</a>, A, Z::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
 </div><p>Search for the first occurrence of a value.
  If the search is successful, return a yazl that
- focuses before (to the left) of the found element.
+ focuses before (right search) or after (left search)
+ the found element.
  If the search does not find the value,
  then it returns <code>endr</code> or <code>endl</code>.</p>
 
@@ -223,10 +226,9 @@ boolean predicate function of the current value becomes true (false).</p>
 <p><tt>finds(X1::<a href="#type-direction">direction()</a>, A::[A], Z::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
 </div><p><p>Search for the first sequence of values
  that match a given non-empty list.
- The target sequence always runs left-to-right,
- even if the search is to the left (backwards).
- If the search is successful, it returns a yazl that
- focuses before the beginning (to the left) of the sequence.
+ If the search is successful, return a yazl that
+ focuses before (right search) or after (left search)
+ the found list of elements.
  If the search does not find the value,
  then it returns <code>endr</code> or <code>endl</code>.</p>
 
@@ -258,6 +260,15 @@ boolean predicate function of the current value becomes true (false).</p>
  The position for the index is implicitly to the right,
  so for a non-empty list,
  passing <code>endl</code> is the same as passing 1.</p>
+
+<h3 class="function"><a name="from_lists-2">from_lists/2</a></h3>
+<div class="spec">
+<p><tt>from_lists(A::[A], A::[A]) -&gt; <a href="#type-yazl">yazl</a>(A)</tt><br></p>
+</div><p>Constructor: create a yazl with focus between two sublists.
+ The underlying list will be the concatenation of the two lists.
+ The focus will be after (right of) the last element of the first list,
+ and before (left of) the first element of the second list.
+ If both lists are empty, the empty yazl is returned.</p>
 
 <h3 class="function"><a name="get-2">get/2</a></h3>
 <div class="spec">
@@ -349,12 +360,13 @@ boolean predicate function of the current value becomes true (false).</p>
 <h3 class="function"><a name="moveuntil-3">moveuntil/3</a></h3>
 <div class="spec">
 <p><tt>moveuntil(X1::<a href="#type-direction">direction()</a>, Pred::<a href="#type-predicate">predicate</a>(A), Z::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
-</div><p>Search for the first occurrence of a value
+</div><p><p>Search for the first occurrence of a value
  that satisfies a boolean predicate function.
  If the search is successful, it returns a yazl
  that focuses before the found element.
  If the search does not find the value,
- then it returns <code>endr</code> or <code>endl</code>.
+ then it returns <code>endr</code> or <code>endl</code>.</p>
+
  Note this is equivalent to <code>movewhile</code>
  using the negation of the predicate.</p>
 
@@ -426,7 +438,17 @@ boolean predicate function of the current value becomes true (false).</p>
  If the yazl is empty, the result is the empty list.
  The cost is proportional to the position in the list.
  If the focus is at <code>endl</code> it is O(1),
- but if the focus is at <code>endl</code> it is O(n).</p>
+ but if the focus is at <code>endr</code> it is O(n).</p>
+
+<h3 class="function"><a name="to_lists-1">to_lists/1</a></h3>
+<div class="spec">
+<p><tt>to_lists(Z::<a href="#type-yazl">yazl</a>(A)) -&gt; {[A], [A]}</tt><br></p>
+</div><p>Recover the underlying sublists before and after the focus.
+ If the yazl is empty, the result is two empty lists.
+ The underlying list is equal to the concatenation of the two lists.
+ The cost is proportional to the position in the list.
+ If the focus is at <code>endl</code> it is O(1),
+ but if the focus is at <code>endr</code> it is O(n).</p>
 
 <h3 class="function"><a name="truncate-2">truncate/2</a></h3>
 <div class="spec">
@@ -441,6 +463,6 @@ boolean predicate function of the current value becomes true (false).</p>
 <hr>
 
 <div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://github.com/mike-french/zipperl"><img src="dragon.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
-<p><i>Generated by EDoc, Jul 3 2015, 14:32:19.</i></p>
+<p><i>Generated by EDoc, Jul 3 2015, 19:37:59.</i></p>
 </body>
 </html>

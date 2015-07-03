@@ -21,6 +21,7 @@
           foldl/4,
           foldr/4,
           from_list/1, from_list/2,
+          from_lists/2,
           get/2,
           insert/3, 
           inserts/3,
@@ -39,6 +40,7 @@
           set/3,
           size/1,
           to_list/1,
+          to_lists/1,
           truncate/2
          ] ).
          
@@ -477,9 +479,9 @@ prop_find_present_l() ->
   ?PRINT( "Simple find element to left~n" ),
   List = [1,2,3],
   ZR = from_list( endr, List ),
-  (from_list(1,List) =:= find( ldir, 1, ZR )) and
-  (from_list(2,List) =:= find( ldir, 2, ZR )) and
-  (from_list(3,List) =:= find( ldir, 3, ZR )).
+  (from_list(2,List)    =:= find( ldir, 1, ZR )) and
+  (from_list(3,List)    =:= find( ldir, 2, ZR )) and
+  (from_list(endr,List) =:= find( ldir, 3, ZR )).
   
 prop_find_absent() ->
   ?PRINT( "Cannot find absent element~n" ),
@@ -521,20 +523,59 @@ prop_finds_nonempty_ends() ->
   
 prop_finds_singleton() ->
   List = [a],
-  from_list(endl,List) =:= finds( ldir, List, from_list(endr,List) ).
-  
-prop_finds_whole_list() ->
-  List = [abc],
   ZL = from_list(endl,List),
   ZR = from_list(endr,List),
   (ZL =:= finds( rdir, List, ZL )) and
-  (ZL =:= finds( ldir, List, ZR )).
+  (ZR =:= finds( ldir, List, ZR )).
+  
+prop_finds_whole_list() ->
+  List = [a,b,c],
+  ZL = from_list(endl,List),
+  ZR = from_list(endr,List),
+  (ZL =:= finds( rdir, List, ZL )) and
+  (ZR =:= finds( ldir, List, ZR )).
 
 % ---------------------------------------------------
 % moveuntil( direction(), predicate(A), yazl(A) ) -> maybe(yazl(A)).
 
-% TODO
-
+prop_moveuntil_empty() ->
+  ?PRINT( "Move until on empty yazl does not succeed~n" ),
+  Fun = fun(X) -> X =:= z end,
+  (endr =:= moveuntil( rdir, Fun, new() )) and 
+  (endl =:= moveuntil( ldir, Fun, new() )).
+  
+prop_moveuntil_never() ->
+  ?PRINT( "Move until false predicate does not succeed~n" ),
+  List = [a,b,c],
+  ZL = from_list(endl,List),
+  ZR = from_list(endr,List),
+  Fun = fun(X) -> X =:= z end,
+  (endr =:= moveuntil( rdir, Fun, ZL )) and 
+  (endl =:= moveuntil( ldir, Fun, ZR )).
+  
+prop_moveuntil_start() ->
+  ?PRINT( "Move until finding first element gives original yazl~n" ),
+  List = [a,b,c],
+  ZL = from_list(endl,List),
+  ZR = from_list(endr,List),
+  Fun = fun(X) -> X =:= a end,
+  LtoR = moveuntil( rdir, Fun, ZL ),
+  RtoL = moveuntil( ldir, Fun, ZR ),
+  (          ZL  =:= LtoR) and Fun( get(rdir,LtoR) ) and
+  (move(rdir,ZL) =:= RtoL) and Fun( get(ldir,RtoL) ).
+  
+prop_moveuntil_middle() ->
+  ?PRINT( "Move until finding middle element gives moved yazl~n" ),
+  List = [a,b,c],
+  ZL = from_list(endl,List),
+  ZR = from_list(endr,List),
+  Zb = from_list(2,List),
+  Fun = fun(X) -> X =:= b end,
+  LtoR = moveuntil( rdir, Fun, ZL ),
+  RtoL = moveuntil( ldir, Fun, ZR ),
+  (          Zb  =:= LtoR) and Fun( get(rdir,LtoR) ) and
+  (move(rdir,Zb) =:= RtoL) and Fun( get(ldir,RtoL) ).
+  
 % ---------------------------------------------------
 % movewhile( direction(), predicate(A), yazl(A) ) -> maybe(yazl(A)).
 
@@ -561,7 +602,29 @@ prop_insert_ends() ->
 % ---------------------------------------------------
 % inserts( direction(), [A], yazl(A) ) -> yazl(A).
 
-% TODO
+prop_inserts_nothing() ->
+  ?PRINT( "Inserting an empty list is a no-op~n" ),
+  ?FORALL( Z, yazls(),
+    (Z =:= inserts( rdir, [], Z )) and 
+    (Z =:= inserts( ldir, [], Z ))
+   ).
+ 
+prop_inserts_empty() ->
+  ?PRINT( "Inserting to an empty yazl is just the addition~n" ),
+  Add = [x,y],
+  (from_list(endl,Add) =:= inserts( rdir, Add, new() )) and 
+  (from_list(endr,Add) =:= inserts( ldir, Add, new() )).
+  
+prop_inserts_list() ->
+  ?PRINT( "Inserting a list into a non-empty yazl~n" ),
+  List = [a,b,c],
+  Add  = [x,y],
+  ZL = from_list(endl,List),
+  ZR = from_list(endr,List),
+  (from_list(endl,Add++List) =:= inserts( rdir, Add, ZL )) and 
+  (from_lists(Add,List)      =:= inserts( ldir, Add, ZL )) and
+  (from_lists(List,Add)      =:= inserts( rdir, Add, ZR )) and 
+  (from_list(endr,List++Add) =:= inserts( ldir, Add, ZR )).
 
 % ---------------------------------------------------
 % delete( direction(), yazl(A) ) -> maybe(yazl(A)).

@@ -44,7 +44,7 @@
 %
 % === Create, Import, Export ===
 %
-% Create yazls from lists using `new' and `from_list'.
+% Create yazls from lists using `new', `from_list' and `from_lists'.
 % Test if a term appears to be a yazl with `is_yazl'.
 % Recover the underlying list with `to_list'.
 %
@@ -102,18 +102,18 @@
 %
 % == Efficiency ==
 %
-% The implementation is efficient (constant time)
+% The implementation is efficient constant time, O(1):
 % for local operations at the focus: <br/>
-% `new, from_list/1, move, get, set, insert, inserts, 
+% `new, from_list/1, move, get, set, insert, 
 %  delete, reverse, truncate'.
 %
 % Incremental operations will incur a cost proportional
 % to the distance from the focus to the target position:<br/>
-% `from_list/2, moves, moveto, moveuntil, 
-% find, finds'.
+% `from_list/2, from_lists, moves, moveto, moveuntil, 
+% find, finds, inserts'.
 %
 % Global operations will incur a cost proportional to the
-% length of the underlying list: <br/>
+% length of the underlying list O(n): <br/>
 % `to_list, size, position'.
 
 -module('yazl').
@@ -127,6 +127,7 @@
    find/3,
    finds/3,
    from_list/1, from_list/2,
+   from_lists/2,
    get/2,
    insert/3, 
    inserts/3,
@@ -145,6 +146,7 @@
    set/3,
    size/1,
    to_list/1,
+   to_lists/1,
    truncate/2
 ] ).
          
@@ -253,6 +255,18 @@ from_list(    I, List ) when is_list(List) and is_integer(I)
                          and (I >= 1) and (I =< length(List)) -> 
   { L, R } = lists:split( I-1, List ),
   { lists:reverse(L), R }.
+  
+% ---------------------------------------------------
+% @doc Constructor: create a yazl with focus between two sublists. 
+% The underlying list will be the concatenation of the two lists.
+% The focus will be after (right of) the last element of the first list,
+% and before (left of) the first element of the second list.
+% If both lists are empty, the empty yazl is returned.
+
+-spec from_lists( [A], [A] ) -> yazl(A).
+
+from_lists( L, R ) when is_list(L) and is_list(R) -> 
+  { lists:reverse(L), R }.
 
 % ==============================================================
 % Queries
@@ -307,12 +321,25 @@ position( rdir, { L,_ } ) -> length(L) + 1.
 % If the yazl is empty, the result is the empty list.
 % The cost is proportional to the position in the list.
 % If the focus is at `endl' it is O(1), 
-% but if the focus is at `endl' it is O(n).
+% but if the focus is at `endr' it is O(n).
 
 -spec to_list( yazl(A) ) -> [A].
 
 to_list( {[],[]} ) -> [];
 to_list( { L,R } ) -> lists:reverse( L, R ).
+
+% ---------------------------------------------------
+% @doc Recover the underlying sublists before and after the focus.
+% If the yazl is empty, the result is two empty lists.
+% The underlying list is equal to the concatenation of the two lists.
+% The cost is proportional to the position in the list.
+% If the focus is at `endl' it is O(1), 
+% but if the focus is at `endr' it is O(n).
+
+-spec to_lists( yazl(A) ) -> { [A], [A] }.
+
+to_lists( Z={[],[]} ) -> Z;
+to_lists(  { L, R } ) -> { lists:reverse(L), R }.
 
 % ---------------------------------------------------
 % @doc Get the value of the element to the right or
@@ -408,7 +435,8 @@ moveto( I,    Z={ _,_ } ) when is_integer(I) ->
 % ---------------------------------------------------
 % @doc Search for the first occurrence of a value. 
 % If the search is successful, return a yazl that
-% focuses before (to the left) of the found element.
+% focuses before (right search) or after (left search) 
+% the found element.
 % If the search does not find the value,
 % then it returns `endr' or `endl'.
 
@@ -417,16 +445,15 @@ moveto( I,    Z={ _,_ } ) when is_integer(I) ->
 find( rdir, _, { _,[]} ) -> endr;
 find( ldir, _, {[],_ } ) -> endl;
 find( rdir, Val, Z={ _,[Val|_] } ) -> Z;
-find( ldir, Val, Z={ [Val|_],_ } ) -> move(ldir,Z); 
+find( ldir, Val, Z={ [Val|_],_ } ) -> Z; 
 find(  Dir, Val, Z ) -> find( Dir, Val, move(Dir,Z) ).
 
 % ---------------------------------------------------
 % @doc Search for the first sequence of values  
 % that match a given non-empty list.
-% The target sequence always runs left-to-right,
-% even if the search is to the left (backwards).
-% If the search is successful, it returns a yazl that
-% focuses before the beginning (to the left) of the sequence.
+% If the search is successful, return a yazl that
+% focuses before (right search) or after (left search) 
+% the found list of elements.
 % If the search does not find the value,
 % then it returns `endr' or `endl'.
 %
@@ -450,7 +477,7 @@ finds( rdir, Vs=[V|VT], Z ) ->
 finds( ldir, Vs, Z ) -> 
   case finds( rdir, lists:reverse(Vs), reverse(Z) ) of
     endr -> endl;
-    Y    -> reverse( moves( rdir, length(Vs), Y ) )
+    Y    -> reverse( Y )
   end.
   
 % ---------------------------------------------------
@@ -460,6 +487,7 @@ finds( ldir, Vs, Z ) ->
 % that focuses before the found element.
 % If the search does not find the value,
 % then it returns `endr' or `endl'.
+%
 % Note this is equivalent to `movewhile' 
 % using the negation of the predicate. 
 
@@ -474,7 +502,7 @@ moveuntil( rdir, Pred, Z={_,[RH|_]} ) ->
   end;
 moveuntil( ldir, Pred, Z={[LH|_],_} ) ->
   case Pred(LH) of
-    true  -> move( ldir, Z );
+    true  -> Z;
     false -> moveuntil( ldir, Pred, move(ldir,Z) )
   end.
   
