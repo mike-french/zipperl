@@ -11,6 +11,8 @@
 
 -compile( {no_auto_import,[size/1]} ).
 
+-export( [performance_all/0] ).
+   
 -import( yazl,
          [delete/2,
           ending/1,
