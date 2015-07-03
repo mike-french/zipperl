@@ -57,7 +57,7 @@
 % Performance test parameters
 
 -define(   SIZE, 100000 ).
--define( REPEAT,     10 ).
+-define( REPEAT,     20 ).
 
 % ---------------------------------------------------
 % EUnit wrappers
@@ -115,14 +115,14 @@ list3() -> [3]++list2().
 
 % reflect a position as if during a reverse
 
-reflect( r,  0, endr ) -> endr;
-reflect( l,  0, endl ) -> endl;
-reflect( r,  _, endr ) -> 1;
-reflect( l,  N, endl ) -> N;
-reflect( r,  _, 1    ) -> endr;
-reflect( l,  N, N    ) -> endl;
-reflect( r,  N, IR   ) -> N - IR + 2;
-reflect( l,  N, IL   ) -> N - IL.
+reflect( rdir,  0, endr ) -> endr;
+reflect( ldir,  0, endl ) -> endl;
+reflect( rdir,  _, endr ) -> 1;
+reflect( ldir,  N, endl ) -> N;
+reflect( rdir,  _, 1    ) -> endr;
+reflect( ldir,  N, N    ) -> endl;
+reflect( rdir,  N, IR   ) -> N - IR + 2;
+reflect( ldir,  N, IL   ) -> N - IL.
   
 % reflect a current value as if during a reverse
 
@@ -163,10 +163,10 @@ prop_to_list_empty() ->
 
 prop_from_list_to_list() ->
   ?PRINT( "Roundtrip from list gives original list~n" ),
-  ?FORALL( L, list(),
+  ?FORALL( List, list(),
     begin
-      Z = from_list( L ),
-      is_yazl(Z) and (L =:= to_list(Z))
+      Z = from_list( List ),
+      is_yazl(Z) and (List =:= to_list(Z))
     end
   ).
   
@@ -175,15 +175,15 @@ prop_from_list_to_list() ->
   
 prop_from_list_i_to_list() ->
   ?PRINT( "Roundtrip from list with position gives original list~n" ),
-  ?FORALL( L, list1(),
+  ?FORALL( List, list1(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(1,N),
           begin
-            Z = from_list(I,L),
+            Z = from_list(I,List),
             is_yazl(Z) and 
-            (I =:= position(r,Z)) and
-            (L =:= to_list(Z))
+            (I =:= position(rdir,Z)) and
+            (List =:= to_list(Z))
           end
        )
      end
@@ -198,8 +198,8 @@ prop_is_empty_new() ->
   
 prop_is_empty_not() ->
   ?PRINT( "Non-empty lists are non-empty~n" ),
-  ?FORALL( L, list1(), 
-     not is_empty( from_list(L) )
+  ?FORALL( List, list1(), 
+     not is_empty( from_list(List) )
   ).
   
 % ---------------------------------------------------
@@ -207,8 +207,8 @@ prop_is_empty_not() ->
 
 prop_size_list() ->
   ?PRINT( "Size is same as length of the list~n" ),
-  ?FORALL( L, list(), 
-     length(L) =:= size( from_list(L) ) 
+  ?FORALL( List, list(), 
+     length(List) =:= size( from_list(List) ) 
   ).
 
 % ---------------------------------------------------
@@ -216,33 +216,33 @@ prop_size_list() ->
 
 prop_position_from_endl() ->
   ?PRINT( "Import list at endl makes positions l->endl and r->1|endr~n" ),
-  ?FORALL( L, list(),
+  ?FORALL( List, list(),
      begin
-       Z = from_list( endl, L ),
+       Z = from_list( endl, List ),
        RPos = case size(Z) of 0 -> endr; _N -> 1 end, 
-       (endl =:= position( l, Z )) and
-       (RPos =:= position( r, Z ))
+       (endl =:= position(ldir,Z)) and
+       (RPos =:= position(rdir,Z))
      end
   ).
 
 prop_position_from_endr() ->
   ?PRINT( "Import list at endr makes positions r->endr and l->1|endl~n" ),
-  ?FORALL( L, list(),
+  ?FORALL( List, list(),
      begin
-       Z = from_list( endr, L ),
+       Z = from_list( endr, List ),
        LPos = case size(Z) of 0 -> endl; N -> N end,
-       (endr =:= position( r, Z )) and
-       (LPos =:= position( l, Z ))
+       (endr =:= position(rdir,Z)) and
+       (LPos =:= position(ldir,Z))
      end
   ).
   
 prop_position_from_i() ->
   ?PRINT( "Import list at i has position r->i~n" ),
-  ?FORALL( L, list1(),
+  ?FORALL( List, list1(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(1,N),
-          I =:= position( r, from_list(I,L) )
+          I =:= position( rdir, from_list(I,List) )
        )
      end
   ).
@@ -253,22 +253,22 @@ prop_position_from_i() ->
 
 prop_get_ends() ->
   ?PRINT( "Accessing past the ends does not get value~n" ),
-  ?FORALL( L, list(),
-     (endl =:= get( l, from_list(endl,L) )) and
-     (endr =:= get( r, from_list(endr,L) ))
+  ?FORALL( List, list(),
+     (endl =:= get( ldir, from_list(endl,List) )) and
+     (endr =:= get( rdir, from_list(endr,List) ))
   ).
   
 prop_get_from_position() ->
   ?PRINT( "Accessor returns the value at the index~n" ),
-  ?FORALL( L, list1(),
+  ?FORALL( List, list1(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(1,N),
           begin
-            V = lists:nth( I, L ),
-            Z = from_list( I, L ),
-            (V =:= get( r, Z )) and
-            (V =:= get( l, move(r,Z) ))
+            V = lists:nth( I, List ),
+            Z = from_list( I, List ),
+            (V =:= get( rdir, Z )) and
+            (V =:= get( ldir, move(rdir,Z) ))
           end
        )
      end
@@ -276,16 +276,16 @@ prop_get_from_position() ->
   
 prop_get_set_insert_r() ->
   ?PRINT( "Accessor returns new value set or inserted~n" ),
-  ?FORALL( L, list2(),
+  ?FORALL( List, list2(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(2,N),
           begin
-            Z = from_list( I, L ),
-            (99 =:= get(r,    set(r,99,Z) )) and
-            (99 =:= get(r, insert(r,99,Z) )) and
-            (99 =:= get(l,    set(l,99,Z) )) and
-            (99 =:= get(l, insert(l,99,Z) ))
+            Z = from_list( I, List ),
+            (99 =:= get(rdir,    set(rdir,99,Z) )) and
+            (99 =:= get(rdir, insert(rdir,99,Z) )) and
+            (99 =:= get(ldir,    set(ldir,99,Z) )) and
+            (99 =:= get(ldir, insert(ldir,99,Z) ))
           end
        )
      end
@@ -296,37 +296,37 @@ prop_get_set_insert_r() ->
 
 prop_move_l_from_endl() ->
   ?PRINT( "Cannot move left from left end~n" ),
-  ?FORALL( L, list(),
-     endl =:= move( l, from_list( endl, L ) )
+  ?FORALL( List, list(),
+     endl =:= move( ldir, from_list(endl,List) )
   ).
   
 prop_move_r_from_endr() ->
   ?PRINT( "Cannot move right from right end~n" ),
-  ?FORALL( L, list(),
-     endr =:= move( r, from_list( endr, L ) )
+  ?FORALL( List, list(),
+     endr =:= move( rdir, from_list(endr,List) )
   ).
   
 prop_move_r_from_n() ->
   ?PRINT( "Move right from last element to right end~n" ),
-  ?FORALL( L, list1(),
-     endr =:= position( r, move( r, from_list( length(L), L ) ) )
+  ?FORALL( List, list1(),
+     endr =:= position( rdir, move( rdir, from_list(length(List),List) ) )
   ).
   
 prop_move_l_from_1() ->
   ?PRINT( "Move left from 2nd element to left end~n" ),
-  ?FORALL( L, list2(),
-     endl =:= position( l, move( l, from_list( 2, L ) ) )
+  ?FORALL( List, list2(),
+     endl =:= position( ldir, move( ldir, from_list(2,List) ) )
   ).
  
 prop_move_r_increment_r() ->
   ?PRINT( "Moving right increments right position~n" ),
-  ?FORALL( L, list2(),
+  ?FORALL( List, list2(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(1,N-1),
           begin
-            Z = from_list(I,L),
-            position( r, move(r,Z) ) =:= position(r,Z) + 1 
+            Z = from_list(I,List),
+            position( rdir, move(rdir,Z) ) =:= position(rdir,Z) + 1 
           end
        )
      end
@@ -334,13 +334,13 @@ prop_move_r_increment_r() ->
   
 prop_move_l_decrement_l() ->
   ?PRINT( "Moving left decrements left position~n" ),
-  ?FORALL( L, list3(),
+  ?FORALL( List, list3(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(3,N),
           begin
-            Z = from_list(I,L),
-            position( l, move(l,Z) ) =:= position(l,Z) - 1 
+            Z = from_list(I,List),
+            position( ldir, move(ldir,Z) ) =:= position(ldir,Z) - 1 
           end
        )
      end
@@ -348,13 +348,13 @@ prop_move_l_decrement_l() ->
   
 prop_move_r_increment_l() ->
   ?PRINT( "Moving right increments left position~n" ),
-  ?FORALL( L, list2(),
+  ?FORALL( List, list2(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(2,N),
           begin
-            Z = from_list(I,L),
-            position( l, move(r,Z) ) =:= position(l,Z) + 1 
+            Z = from_list(I,List),
+            position( ldir, move(rdir,Z) ) =:= position(ldir,Z) + 1 
           end
        )
      end
@@ -362,13 +362,13 @@ prop_move_r_increment_l() ->
   
 prop_move_l_decrement_r() ->
   ?PRINT( "Moving left decrements right position~n" ),
-  ?FORALL( L, list2(),
+  ?FORALL( List, list2(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(2,N),
           begin
-            Z = from_list(I,L),
-            position( r, move(l,Z) ) =:= position(r,Z) - 1 
+            Z = from_list(I,List),
+            position( rdir, move(ldir,Z) ) =:= position(rdir,Z) - 1 
           end
        )
      end
@@ -376,13 +376,13 @@ prop_move_l_decrement_r() ->
   
 prop_move_l_r_unchanged() ->
   ?PRINT( "Moving left then right is no-op~n" ),
-  ?FORALL( L, list2(),
+  ?FORALL( List, list2(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(2,N),
           begin
-            Z = from_list(I,L),
-            Z =:= move(r,move(l,Z)) 
+            Z = from_list(I,List),
+            Z =:= move( rdir,move(ldir,Z) ) 
           end
        )
      end
@@ -390,13 +390,13 @@ prop_move_l_r_unchanged() ->
   
 prop_move_r_l_unchanged() ->
   ?PRINT( "Moving right then left is no-op~n" ),
-  ?FORALL( L, list1(),
+  ?FORALL( List, list1(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(1,N),
           begin
-            Z = from_list(I,L),
-            Z =:= move(l,move(r,Z)) 
+            Z = from_list(I,List),
+            Z =:= move( ldir, move(rdir,Z) ) 
           end
        )
      end
@@ -407,14 +407,14 @@ prop_move_r_l_unchanged() ->
 
 prop_moves_negative_opposite() ->
   ?PRINT( "Moving -ve is same as moving +ve in other direction~n" ),
-  ?FORALL( L, list1(),
+  ?FORALL( List, list1(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(1,N),
           begin
-            Z = from_list(I,L),
-            (moves(r,I,Z) =:= moves(l,-I,Z)) and 
-            (moves(l,I,Z) =:= moves(r,-I,Z))
+            Z = from_list(I,List),
+            (moves(rdir,I,Z) =:= moves(ldir,-I,Z)) and 
+            (moves(ldir,I,Z) =:= moves(rdir,-I,Z))
           end
        )
      end
@@ -423,28 +423,28 @@ prop_moves_negative_opposite() ->
 prop_moves_zero_noop() ->
   ?PRINT( "Moving by zero does not change anything~n" ),     
   ?FORALL( Z, yazls(),
-     (Z =:= moves(r,0,Z)) and 
-     (Z =:= moves(l,0,Z))
+     (Z =:= moves(rdir,0,Z)) and 
+     (Z =:= moves(ldir,0,Z))
   ).
   
 prop_moves_one_move() ->
   ?PRINT( "Moving by one is same simple move~n" ),     
   ?FORALL( Z, yazls(),
-     (move(r,Z) =:= moves(r,1,Z)) and 
-     (move(l,Z) =:= moves(l,1,Z))
+     (move(rdir,Z) =:= moves(rdir,1,Z)) and 
+     (move(ldir,Z) =:= moves(ldir,1,Z))
   ).
   
 prop_moves_repeated_move() ->
   ?PRINT( "Moves is the same as multiple move~n" ),
-  ?FORALL( L, list3(),
+  ?FORALL( List, list3(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(1,N),
           begin
-            Z = from_list(I,L),
+            Z = from_list(I,List),
             ?FORALL( M, range(2,N),
-              (multi_move(r,M,Z) =:= moves(r,M,Z)) and
-              (multi_move(l,M,Z) =:= moves(l,M,Z))
+              (multi_move(rdir,M,Z) =:= moves(rdir,M,Z)) and
+              (multi_move(ldir,M,Z) =:= moves(ldir,M,Z))
             )
           end
        )
@@ -457,8 +457,8 @@ prop_moves_repeated_move() ->
 prop_moveto_end() ->
   ?PRINT( "Move to end puts you at end~n" ),     
   ?FORALL( Z, yazls(),
-     (endl =:= position(l,moveto(endl,Z))) and
-     (endr =:= position(r,moveto(endr,Z)))
+     (endl =:= position( ldir, moveto(endl,Z) )) and
+     (endr =:= position( rdir, moveto(endr,Z) ))
   ).
   
 prop_moveto_past_end() ->
@@ -470,12 +470,12 @@ prop_moveto_past_end() ->
   
 prop_moveto_index() ->
   ?PRINT( "Move to a valid index puts you at the index~n" ),
-  ?FORALL( L, list1(),
+  ?FORALL( List, list1(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(1,N),
-          (from_list(I,L) =:= moveto( I, from_list(L) ) ) and
-          (I =:= position( r, moveto( I, from_list(L) )))
+          (from_list(I,List) =:= moveto( I, from_list(List) ) ) and
+          (I =:= position( rdir, moveto( I, from_list(List) )))
        )
      end
   ).
@@ -485,41 +485,41 @@ prop_moveto_index() ->
 
 prop_find_present_r() ->
   ?PRINT( "Simple find element to right~n" ),
-  L = [1,2,3],
-  ZL = from_list( endl, L ),
-  (from_list(1,L) =:= find( r, 1, ZL )) and
-  (from_list(2,L) =:= find( r, 2, ZL )) and
-  (from_list(3,L) =:= find( r, 3, ZL )).
+  List = [1,2,3],
+  Z = from_list( endl, List ),
+  (from_list(1,List) =:= find( rdir, 1, Z )) and
+  (from_list(2,List) =:= find( rdir, 2, Z )) and
+  (from_list(3,List) =:= find( rdir, 3, Z )).
   
 prop_find_present_l() ->
   ?PRINT( "Simple find element to left~n" ),
-  L = [1,2,3],
-  ZR = from_list( endr, L ),
-  (from_list(1,L) =:= find( l, 1, ZR )) and
-  (from_list(2,L) =:= find( l, 2, ZR )) and
-  (from_list(3,L) =:= find( l, 3, ZR )).
+  List = [1,2,3],
+  ZR = from_list( endr, List ),
+  (from_list(1,List) =:= find( ldir, 1, ZR )) and
+  (from_list(2,List) =:= find( ldir, 2, ZR )) and
+  (from_list(3,List) =:= find( ldir, 3, ZR )).
   
 prop_find_absent() ->
   ?PRINT( "Cannot find absent element~n" ),
-  ?FORALL( L99, list(),
+  ?FORALL( List99, list(),
      begin
-       L = lists:filter( fun(X) -> X =/= 99 end, L99 ),
-       ZL = from_list( endl, L ),
-       ZR = from_list( endr, L ),
-       (endr =:= find( r, 99, ZR )) and
-       (endr =:= find( r, 99, ZL )) and
-       (endl =:= find( l, 99, ZR )) and
-       (endl =:= find( l, 99, ZL ))
+       List = lists:filter( fun(X) -> X =/= 99 end, List99 ),
+       ZL = from_list( endl, List ),
+       ZR = from_list( endr, List ),
+       (endr =:= find( rdir, 99, ZR )) and
+       (endr =:= find( rdir, 99, ZL )) and
+       (endl =:= find( ldir, 99, ZR )) and
+       (endl =:= find( ldir, 99, ZL ))
       end
   ).
 
 prop_find_look_the_other_way() ->
   ?PRINT( "Cannot find element by looking the other way~n" ),
-  L = [1,2,3],
-  ZL = from_list( endl, L ),
-  ZR = from_list( endr, L ),
-  (endr =:= find( r, 2, ZR )) and
-  (endl =:= find( l, 2, ZL )).
+  List = [1,2,3],
+  ZL = from_list( endl, List ),
+  ZR = from_list( endr, List ),
+  (endr =:= find( rdir, 2, ZR )) and
+  (endl =:= find( ldir, 2, ZL )).
   
 % ---------------------------------------------------
 % finds( direction(), [A], yazl(A) ) -> maybe(yazl(A)).
@@ -527,26 +527,26 @@ prop_find_look_the_other_way() ->
 prop_finds_empty_list() ->
   ?PRINT( "Empty list is always found as prefix of every list~n" ),
   Z = new(),
-  (Z =:= finds( r, [], Z )) and
-  (Z =:= finds( l, [], Z )).
+  (Z =:= finds( rdir, [], Z )) and
+  (Z =:= finds( ldir, [], Z )).
   
 prop_finds_nonempty_ends() ->
   ?PRINT( "Nonempty list is not found at ends~n" ),
-  ?FORALL( L, list(),
-    (endr =:= finds( r, [a], from_list( endr, L ) )) and
-    (endl =:= finds( l, [a], from_list( endl, L ) ))
+  ?FORALL( List, list(),
+    (endr =:= finds( rdir, [a], from_list(endr,List) )) and
+    (endl =:= finds( ldir, [a], from_list(endl,List) ))
   ).
   
 prop_finds_singleton() ->
-  L = [a],
-  from_list(endl,L) =:= finds( l, L, from_list(endr,L) ).
+  List = [a],
+  from_list(endl,List) =:= finds( ldir, List, from_list(endr,List) ).
   
 prop_finds_whole_list() ->
-  L = [abc],
-  ZL = from_list(endl,L),
-  ZR = from_list(endr,L),
-  (ZL =:= finds( r, L, ZL )) and
-  (ZL =:= finds( l, L, ZR )).
+  List = [abc],
+  ZL = from_list(endl,List),
+  ZR = from_list(endr,List),
+  (ZL =:= finds( rdir, List, ZL )) and
+  (ZL =:= finds( ldir, List, ZR )).
 
 % ---------------------------------------------------
 % moveuntil( direction(), predicate(A), yazl(A) ) -> maybe(yazl(A)).
@@ -563,14 +563,14 @@ prop_finds_whole_list() ->
 
 prop_insert_ends() ->
   ?PRINT( "Insert at the ends~n" ),
-  ?FORALL( L, list1(),
+  ?FORALL( List, list1(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(1,N),
           begin
-            Z = from_list( I, L ),
-            (99 =:= get(l, moveto(endr,insert(endr,99,Z)))) and
-            (99 =:= get(r, moveto(endl,insert(endl,99,Z))))
+            Z = from_list( I, List ),
+            (99 =:= get( ldir, moveto( endr, insert(endr,99,Z) ) )) and
+            (99 =:= get( rdir, moveto( endl, insert(endl,99,Z) ) ))
           end
        )
      end
@@ -586,21 +586,21 @@ prop_insert_ends() ->
 
 prop_delete_ends() ->
   ?PRINT( "Deleting past the ends does not succeed~n" ),
-  ?FORALL( L, list(),
-     (endl =:= delete( l, from_list(endl,L) )) and
-     (endr =:= delete( r, from_list(endr,L) ))
+  ?FORALL( List, list(),
+     (endl =:= delete( ldir, from_list(endl,List) )) and
+     (endr =:= delete( rdir, from_list(endr,List) ))
   ).
 
 prop_delete_removes_r_element() ->
   ?PRINT( "Delete removes right element~n" ),
-  ?FORALL( L, list1(),
+  ?FORALL( List, list1(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(1,N),
           begin
-            Z = from_list( I, L ),
-            lists:sublist(L,I-1) ++ lists:nthtail(I,L) =:= 
-              to_list( delete( r, Z ) )
+            Z = from_list( I, List ),
+            lists:sublist(List,I-1) ++ lists:nthtail(I,List) =:= 
+              to_list( delete( rdir, Z ) )
           end
        )
      end
@@ -608,14 +608,14 @@ prop_delete_removes_r_element() ->
   
 prop_delete_removes_l_element() ->
   ?PRINT( "Delete removes left element~n" ),
-  ?FORALL( L, list2(),
+  ?FORALL( List, list2(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(2,N),
           begin
-            Z = from_list( I, L ),
-            lists:sublist(L,I-2) ++ lists:nthtail(I-1,L) =:= 
-              to_list( delete( l, Z ) )
+            Z = from_list( I, List ),
+            lists:sublist(List,I-2) ++ lists:nthtail(I-1,List) =:= 
+              to_list( delete( ldir, Z ) )
           end
        )
      end
@@ -623,14 +623,14 @@ prop_delete_removes_l_element() ->
   
 prop_delete_removes_insert() ->
   ?PRINT( "Delete removes element~n" ),
-  ?FORALL( L, list2(),
+  ?FORALL( List, list2(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(2,N),
           begin
-            Z = from_list( I, L ),
-            (Z =:= delete( r, insert( r, 99, Z ))) and
-            (Z =:= delete( l, insert( l, 99, Z )))
+            Z = from_list( I, List ),
+            (Z =:= delete( rdir, insert(rdir,99,Z))) and
+            (Z =:= delete( ldir, insert(ldir,99,Z)))
           end
        )
      end
@@ -642,32 +642,32 @@ prop_delete_removes_insert() ->
 prop_truncate_empty() ->
   ?PRINT( "Truncate empty yazl is no-op~n" ),
   Z = new(),
-  (Z =:= truncate(r,Z)) and
-  (Z =:= truncate(l,Z)).
+  (Z =:= truncate(rdir,Z)) and
+  (Z =:= truncate(ldir,Z)).
 
 prop_truncate_at_r_end() ->
   ?PRINT( "Truncate at right end is no-op~n" ),
-  ?FORALL( L, list1(),
+  ?FORALL( List, list1(),
      begin
-       Z = from_list( endr, L ),
-       Z =:= truncate( r, Z )
+       Z = from_list(endr,List),
+       Z =:= truncate(rdir,Z)
      end
   ).
   
 prop_truncate_at_l_end() ->
   ?PRINT( "Truncate at left end is no-op~n" ),
-  ?FORALL( L, list1(),
+  ?FORALL( List, list1(),
      begin
-       Z = from_list( endl, L ),
-       Z =:= truncate( l, Z )
+       Z = from_list(endl,List),
+       Z =:= truncate(ldir,Z)
      end
   ).
   
 prop_truncate_end_position() ->
   ?PRINT( "Truncate always creates an end position~n" ),
   ?FORALL( Z, nonempty_yazls(),
-     (endl =:= position( l, truncate( l, Z ))) and
-     (endr =:= position( r, truncate( r, Z )))
+     (endl =:= position( ldir, truncate(ldir,Z))) and
+     (endr =:= position( rdir, truncate(rdir,Z)))
   ).
 
 % ---------------------------------------------------
@@ -679,8 +679,8 @@ prop_reverse_empty() ->
 
 prop_reverse_single() ->
   ?PRINT( "Reversing a singleton leaves list unchanged~n" ),
-  L = [a],
-  L =:= to_list( reverse( from_list(L) ) ).
+  List = [a],
+  List =:= to_list( reverse( from_list(List) ) ).
 
 prop_reverse_list() ->
   ?PRINT( "Reversing yazl reverses the underlying list~n" ),     
@@ -696,20 +696,20 @@ prop_reverse_twice_identity() ->
   
 prop_reverse_switches_ends() ->
   ?PRINT( "Reversing an end position switches the ending~n" ),
-  ?FORALL( L, list(),
-     (endr =:= position( r, reverse( from_list(endl,L) ) )) and
-     (endl =:= position( l, reverse( from_list(endr,L) ) ))
+  ?FORALL( List, list(),
+     (endr =:= position( rdir, reverse( from_list(endl,List) ) )) and
+     (endl =:= position( ldir, reverse( from_list(endr,List) ) ))
   ).
   
 prop_reverse_switches_current_values() ->
   ?PRINT( "Reversing switches local values~n" ),
   ?FORALL( Z, yazls(),
      begin
-       LVal = get( l, Z ),
-       RVal = get( r, Z ),
+       LVal = get( ldir, Z ),
+       RVal = get( rdir, Z ),
        RevZ = reverse( Z ),
-       (LVal =:= flip( get( r, RevZ ))) and 
-       (RVal =:= flip( get( l, RevZ )))
+       (LVal =:= flip( get(rdir,RevZ) )) and 
+       (RVal =:= flip( get(ldir,RevZ) ))
      end
   ).
   
@@ -718,13 +718,13 @@ prop_reverse_reflects_index() ->
   ?FORALL( Z, yazls(),
      begin
        N = size( Z ),
-       PosR = position( r, Z ),
-       PosL = position( l, Z ),
+       PosR = position( rdir, Z ),
+       PosL = position( ldir, Z ),
        RevZ = reverse( Z ),
-       PosRevR = position( r, RevZ ),
-       PosRevL = position( l, RevZ ),
-       (PosRevR =:= reflect( r, N, PosR )) and
-       (PosRevL =:= reflect( l, N, PosL ))
+       PosRevR = position( rdir, RevZ ),
+       PosRevL = position( ldir, RevZ ),
+       (PosRevR =:= reflect( rdir, N, PosR )) and
+       (PosRevL =:= reflect( ldir, N, PosL ))
      end
   ).
 
@@ -739,14 +739,14 @@ prop_map_empty() ->
   
 prop_map_as_list() ->
   ?PRINT( "Map is same as map on lists~n" ),
-  ?FORALL( L, list1(),
+  ?FORALL( List, list1(),
      begin
-       N = length(L),
+       N = length(List),
        ?FORALL( I, range(1,N),
           begin
             F = fun(X) -> 2*X end,
-            Z = from_list( I, L ),
-            lists:map(F,L) =:= to_list( map(F,Z) )
+            Z = from_list( I, List ),
+            lists:map(F,List) =:= to_list( map(F,Z) )
           end
        )
      end
@@ -782,7 +782,7 @@ perf_move() ->
   perf_run( "Move - array",  
              fun traverse_array/3, [Array, Len, 0] ),
   perf_run( "Move -  yazl",  
-             fun yazl:moves/3,     [r, Len, from_list(List)] ).
+             fun yazl:moves/3,     [rdir, Len, from_list(List)] ).
 
 perf_fill() ->
   Len   = ?SIZE,
@@ -791,13 +791,13 @@ perf_fill() ->
   perf_run( "Fill - array", 
              fun fill_array/4, [Array, 99, Len, 0] ),
   perf_run( "Fill -  yazl", 
-             fun fill_yazl/3,  [r, 99, from_list(List)] ).
+             fun fill_yazl/3,  [rdir, 99, from_list(List)] ).
 
 perf_insert() ->
   Len   = ?SIZE,
   List  = lists:seq( 1, Len ),
   perf_run( "Insert - yazl", fun inflate/3, 
-             [r,Len-1,from_list(List)] ).
+             [rdir,Len-1,from_list(List)] ).
 
 perf_map() ->
   Len     = ?SIZE,
@@ -817,9 +817,7 @@ perf_find() ->
   perf_run( "Find - array", fun find_array/4, 
              [Array, ?SIZE, Len, 0] ),
   perf_run( "Find -  yazl", fun yazl:find/3, 
-             [r, ?SIZE,                  from_list(List)] ),
-  perf_run( "Find -  yazl", fun yazl:find/3, 
-             [r, fun(X) -> X==?SIZE end, from_list(List)] ).
+             [rdir,  ?SIZE, from_list(List)] ).
              
 %--------------------------------------------------------------
 % Perf test utilities

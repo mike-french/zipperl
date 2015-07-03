@@ -171,11 +171,11 @@
 % An empty yazl is just two empty lists.
 -type empty_yazl() :: { [], [] }.
 
-% Directions are rightward and leftward.
--type direction() :: r | l.    
+% Directions are to the left (beginning) or to the right (end) of the list.
+-type direction() :: ldir | rdir.    
 
-% A position off the beginning or end of the list.
--type ending() :: endr | endl.
+% A position before the left (beginning) or past the right (end) of the list.
+-type ending() :: endl | endr.
 
 % A 1-based index of a position in the list.
 % The value will be between 1 and `size', inclusive.
@@ -198,16 +198,16 @@
 
 -spec opposite( direction() ) -> direction().
 
-opposite( r ) -> l;
-opposite( l ) -> r.
+opposite( rdir ) -> ldir;
+opposite( ldir ) -> rdir.
 
 % ---------------------------------------------------
 % @doc Type utility: Get the end in a specific direction.
 
 -spec ending( direction() ) -> ending().
 
-ending( r ) -> endr;
-ending( l ) -> endl.
+ending( rdir ) -> endr;
+ending( ldir ) -> endl.
 
 % ==============================================================
 % Constructors
@@ -222,6 +222,7 @@ new() -> { [], [] }.
 % ---------------------------------------------------
 % @doc Constructor: create a yazl with focus before the first element 
 % of a list. If the list is empty, the empty yazl is returned.
+% Equivalent to calling `from_list/2' with position argument `endl'.
 
 -spec from_list( [A] ) -> yazl(A).
 
@@ -238,6 +239,9 @@ from_list( List ) when is_list(List) -> { [], List }.
 % or greater than the length of the list,
 % so passing 1 with the empty list is an error.
 % If the list is empty, the empty yazl is returned.
+% The position for the index is implicitly to the right,
+% so for a non-empty list, 
+% passing `endl' is the same as passing 1.
 
 -spec from_list( position(), [A] ) -> yazl(A).
 
@@ -245,8 +249,8 @@ from_list( endl, List ) when is_list(List) ->
   { [], List };
 from_list( endr, List ) when is_list(List) ->
   { lists:reverse(List), [] };
-from_list(    I, List ) when is_list(List) 
-  and is_integer(I) and (I >= 1) and (I =< length(List)) -> 
+from_list(    I, List ) when is_list(List) and is_integer(I) 
+                         and (I >= 1) and (I =< length(List)) -> 
   { L, R } = lists:split( I-1, List ),
   { lists:reverse(L), R }.
 
@@ -292,10 +296,10 @@ size( {L,R} ) -> length(L) + length(R).
 
 -spec position( direction(), yazl(_) ) -> position().
 
-position( l, {[],_ } ) -> endl;
-position( r, { _,[]} ) -> endr;
-position( l, { L,_ } ) -> length(L);
-position( r, { L,_ } ) -> length(L) + 1.
+position( ldir, {[],_ } ) -> endl;
+position( rdir, { _,[]} ) -> endr;
+position( ldir, { L,_ } ) -> length(L);
+position( rdir, { L,_ } ) -> length(L) + 1.
 
 
 % ---------------------------------------------------
@@ -319,10 +323,10 @@ to_list( { L,R } ) -> lists:reverse( L, R ).
 
 -spec get( direction(), yazl(A) ) -> maybe(A).
 
-get( r, { _,[]} ) -> endr;
-get( l, {[],_ } ) -> endl;
-get( r, {_,[H|_]} ) -> H;
-get( l, {[H|_],_} ) -> H.
+get( rdir, { _,[]} ) -> endr;
+get( ldir, {[],_ } ) -> endl;
+get( rdir, {_,[H|_]} ) -> H;
+get( ldir, {[H|_],_} ) -> H.
 
 % ==============================================================
 % Move focus
@@ -333,17 +337,17 @@ get( l, {[H|_],_} ) -> H.
 % of the list, return `endr' or `endl'.
 %
 % Traditional function `next(...)', 
-% is equivalent to the curried form `move( r, ... )'.
+% is equivalent to the curried form `move( rdir, ... )'.
 % Traditional function `prev(...)', 
-% is equivalent to the curried form `move( l, ... )'.
+% is equivalent to the curried form `move( ldir, ... )'.
 % This is fast constant time O(1).
 
 -spec move( direction(), yazl(A) ) -> maybe(yazl(A)).
 
-move( r, { _,[]} ) -> endr;
-move( l, {[], _} ) -> endl;
-move( r, { L,[RH|RT]} ) -> { [RH|L], RT };
-move( l, {[HL|TL],R } ) -> { TL, [HL|R] }.
+move( rdir, { _,[]} ) -> endr;
+move( ldir, {[], _} ) -> endl;
+move( rdir, { L,[RH|RT]} ) -> { [RH|L], RT };
+move( ldir, {[HL|TL],R } ) -> { TL, [HL|R] }.
 
 % ---------------------------------------------------
 % @doc Move the focus multiple steps to the right or left.
@@ -356,19 +360,21 @@ move( l, {[HL|TL],R } ) -> { TL, [HL|R] }.
 % Negative offsets are converted to the equivalent positive
 % offset in the other direction, which may return an
 % unexpected opposite end value,
-% e.g. `moves(r,-2,Z)' may return `endl'.
+% e.g. `moves(rdir,-2,Z)' may return `endl'.
 
 -spec moves( direction(), integer(), yazl(A) ) -> maybe(yazl(A)).
 
-moves( _, 0,     Z ) -> Z;
-moves( D, 1,     Z ) -> move( D, Z );
-moves( D, I,     Z ) when (I < 0) -> moves( opposite(D), -I, Z );
-moves( r, I, {_,R} ) when (I > length(R)) -> endr;
-moves( l, I, {L,_} ) when (I > length(L)) -> endl;
-moves( r, I, {L,R} ) -> { RH, RT } = lists:split( I, R ),
-                        { lists:reverse(RH,L), RT };
-moves( l, I, {L,R} ) -> { LH, LT } = lists:split( I, L ),
-                        { LT, lists:reverse(LH,R) }.
+moves(    _, 0,  Z    ) -> Z;
+moves(  Dir, 1,  Z    ) -> move( Dir, Z );
+moves(  Dir, I,  Z    ) when (I < 0) -> moves( opposite(Dir), -I, Z );
+moves( rdir, I, {_,R} ) when (I > length(R)) -> endr;
+moves( ldir, I, {L,_} ) when (I > length(L)) -> endl;
+moves( rdir, I, {L,R} ) -> 
+  { RH, RT } = lists:split( I, R ),
+  { lists:reverse(RH,L), RT };
+moves( ldir, I, {L,R} ) -> 
+  { LH, LT } = lists:split( I, L ),
+  { LT, lists:reverse(LH,R) }.
 
 % ---------------------------------------------------
 % @doc Move to the beginning or end of the list,
@@ -387,7 +393,7 @@ moveto( endr,   { L,R } ) -> { lists:reverse(R,L), [] };
 moveto( endl,   { L,R } ) -> { [], lists:reverse(L,R) };
 moveto( I,    Z={ _,_ } ) when is_integer(I) ->
   Len = yazl:size( Z ),
-  IR  = case position( r, Z ) of 
+  IR  = case position(rdir,Z) of 
           endr   -> Len+1; 
           IndexR -> IndexR 
         end,
@@ -395,8 +401,8 @@ moveto( I,    Z={ _,_ } ) when is_integer(I) ->
     I when (I <  1  ) -> endl;
     I when (I >  Len) -> endr;
     I when (I == IR ) -> Z;
-    I when (I <  IR ) -> moves( l, IR-I, Z );
-    I when (I >  IR ) -> moves( r, I-IR, Z )
+    I when (I <  IR ) -> moves( ldir, IR-I, Z );
+    I when (I >  IR ) -> moves( rdir, I-IR, Z )
   end.
   
 % ---------------------------------------------------
@@ -408,11 +414,11 @@ moveto( I,    Z={ _,_ } ) when is_integer(I) ->
 
 -spec find( direction(), A, yazl(A) ) -> maybe(yazl(A)).
 
-find( r, _, { _,[]} ) -> endr;
-find( l, _, {[],_ } ) -> endl;
-find( r, Val, Z={ _,[Val|_] } ) -> Z;
-find( l, Val, Z={ [Val|_],_ } ) -> move(l,Z); 
-find( D, Val, Z ) -> find( D, Val, move(D,Z) ).
+find( rdir, _, { _,[]} ) -> endr;
+find( ldir, _, {[],_ } ) -> endl;
+find( rdir, Val, Z={ _,[Val|_] } ) -> Z;
+find( ldir, Val, Z={ [Val|_],_ } ) -> move(ldir,Z); 
+find(  Dir, Val, Z ) -> find( Dir, Val, move(Dir,Z) ).
 
 % ---------------------------------------------------
 % @doc Search for the first sequence of values  
@@ -431,20 +437,20 @@ find( D, Val, Z ) -> find( D, Val, move(D,Z) ).
 
 -spec finds( direction(), [A], yazl(A) ) -> maybe(yazl(A)).
 
-finds( _,        [], Z ) -> Z;
-finds( r, Vs=[V|VT], Z ) ->
-  case find(r,V,Z) of
+finds( _,           [], Z ) -> Z;
+finds( rdir, Vs=[V|VT], Z ) ->
+  case find(rdir,V,Z) of
     endr -> endr;
     Y={ _, [V|RT] } -> 
       case lists:prefix(VT,RT) of
         true  -> Y;
-        false -> finds( r, Vs, move(r,Y) ) 
+        false -> finds( rdir, Vs, move(rdir,Y) ) 
       end
   end;
-finds( l, Vs, Z ) -> 
-  case finds( r, lists:reverse(Vs), reverse(Z) ) of
+finds( ldir, Vs, Z ) -> 
+  case finds( rdir, lists:reverse(Vs), reverse(Z) ) of
     endr -> endl;
-    Y    -> reverse( moves( r, length(Vs), Y ) )
+    Y    -> reverse( moves( rdir, length(Vs), Y ) )
   end.
   
 % ---------------------------------------------------
@@ -459,17 +465,17 @@ finds( l, Vs, Z ) ->
 
 -spec moveuntil( direction(), predicate(A), yazl(A) ) -> maybe(yazl(A)).
 
-moveuntil( r, _, { _,[]} ) -> endr;
-moveuntil( l, _, {[],_ } ) -> endl;
-moveuntil( r, Pred, Z={_,[RH|_]} ) ->
+moveuntil( rdir, _, { _,[]} ) -> endr;
+moveuntil( ldir, _, {[],_ } ) -> endl;
+moveuntil( rdir, Pred, Z={_,[RH|_]} ) ->
   case Pred(RH) of
     true  -> Z;
-    false -> moveuntil( r, Pred, move(r,Z) )
+    false -> moveuntil( rdir, Pred, move(rdir,Z) )
   end;
-moveuntil( l, Pred, Z={[LH|_],_} ) ->
+moveuntil( ldir, Pred, Z={[LH|_],_} ) ->
   case Pred(LH) of
-    true  -> move( l, Z );
-    false -> moveuntil( l, Pred, move(l,Z) )
+    true  -> move( ldir, Z );
+    false -> moveuntil( ldir, Pred, move(ldir,Z) )
   end.
   
 % ---------------------------------------------------
@@ -484,8 +490,8 @@ moveuntil( l, Pred, Z={[LH|_],_} ) ->
 
 -spec movewhile( direction(), predicate(A), yazl(A) ) -> maybe(yazl(A)).
 
-movewhile( D, Pred, Z ) -> 
-  moveuntil( D, fun(A) -> not Pred(A) end, Z ).
+movewhile( Dir, Pred, Z ) -> 
+  moveuntil( Dir, fun(A) -> not Pred(A) end, Z ).
 
 % ==============================================================
 % Update
@@ -499,10 +505,10 @@ movewhile( D, Pred, Z ) ->
 
 -spec set( direction(), A, yazl(A) ) -> maybe(yazl(A)).
 
-set( r, _, { _,[]} ) -> endr;
-set( l, _, {[], _} ) -> endl;
-set( r, V, {L,[_|RT]} ) -> { L,[V|RT]};
-set( l, V, {[_|LT],R} ) -> {[V|LT],R }.
+set( rdir, _, { _,[]} ) -> endr;
+set( ldir, _, {[], _} ) -> endl;
+set( rdir, V, {L,[_|RT]} ) -> { L,[V|RT]};
+set( ldir, V, {[_|LT],R} ) -> {[V|LT],R }.
 
 % ---------------------------------------------------
 % @doc Insert a value to the right or left of the current focus,
@@ -515,8 +521,8 @@ set( l, V, {[_|LT],R} ) -> {[V|LT],R }.
 
 -spec insert( direction() | ending(), A, yazl(A) ) -> yazl(A).
 
-insert(    r, V, {L,R} ) -> {     L , [V|R] };
-insert(    l, V, {L,R} ) -> {  [V|L],    R  };
+insert( rdir, V, {L,R} ) -> {     L ,  [V|R] };
+insert( ldir, V, {L,R} ) -> {  [V|L],     R  };
 insert( endl, V, {L,R} ) -> { L++[V], R      };
 insert( endr, V, {L,R} ) -> { L,      R++[V] }.
 
@@ -532,9 +538,9 @@ insert( endr, V, {L,R} ) -> { L,      R++[V] }.
 
 -spec inserts( direction(), [A], yazl(A) ) -> yazl(A).
 
-inserts(    _, [],Z={_,_} ) -> Z;
-inserts(    r, Vs,  {L,R} ) -> { L,                    Vs++R };
-inserts(    l, Vs,  {L,R} ) -> { lists:reverse(Vs,L),      R };
+inserts(    _, [],Z={_,_} ) ->   Z;
+inserts( rdir, Vs,  {L,R} ) -> { L,                    Vs++R };
+inserts( ldir, Vs,  {L,R} ) -> { lists:reverse(Vs,L),      R };
 inserts( endr, Vs,  {L,R} ) -> { L,                    R++Vs };
 inserts( endl, Vs,  {L,R} ) -> { L++lists:reverse(Vs), R     }.
 
@@ -546,10 +552,10 @@ inserts( endl, Vs,  {L,R} ) -> { L++lists:reverse(Vs), R     }.
 
 -spec delete( direction(), yazl(A) ) -> maybe(yazl(A)).
 
-delete( r, { _,[]} ) -> endr;
-delete( l, {[],_ } ) -> endl;
-delete( r, {L,[_|RT]} ) -> { L,RT};
-delete( l, {[_|LT],R} ) -> {LT,R }.
+delete( rdir, { _,[]} ) -> endr;
+delete( ldir, {[],_ } ) -> endl;
+delete( rdir, {L,[_|RT]} ) -> { L,RT};
+delete( ldir, {[_|LT],R} ) -> {LT,R }.
 
 % ---------------------------------------------------
 % @doc Delete the indicated sublist.
@@ -562,8 +568,8 @@ delete( l, {[_|LT],R} ) -> {LT,R }.
 
 -spec truncate( direction(), yazl(A) ) -> yazl(A).
 
-truncate( r, {L,_} ) -> { L,[]};
-truncate( l, {_,R} ) -> {[],R }.
+truncate( rdir, {L,_} ) -> { L,[]};
+truncate( ldir, {_,R} ) -> {[],R }.
 
 % ---------------------------------------------------
 % @doc Reverse the list maintaining focus.

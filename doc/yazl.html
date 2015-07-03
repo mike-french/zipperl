@@ -123,7 +123,7 @@ boolean predicate function of the current value becomes true (false).</p>
 <h2><a name="types">Data Types</a></h2>
 
 <h3 class="typedecl"><a name="type-direction">direction()</a></h3>
-<p><tt>direction() = r | l</tt></p>
+<p><tt>direction() = ldir | rdir</tt></p>
 
 
 <h3 class="typedecl"><a name="type-empty_yazl">empty_yazl()</a></h3>
@@ -131,7 +131,7 @@ boolean predicate function of the current value becomes true (false).</p>
 
 
 <h3 class="typedecl"><a name="type-ending">ending()</a></h3>
-<p><tt>ending() = endr | endl</tt></p>
+<p><tt>ending() = endl | endr</tt></p>
 
 
 <h3 class="typedecl"><a name="type-index">index()</a></h3>
@@ -211,7 +211,7 @@ boolean predicate function of the current value becomes true (false).</p>
 
 <h3 class="function"><a name="find-3">find/3</a></h3>
 <div class="spec">
-<p><tt>find(D::<a href="#type-direction">direction()</a>, A, Z::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
+<p><tt>find(Dir::<a href="#type-direction">direction()</a>, A, Z::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
 </div><p>Search for the first occurrence of a value.
  If the search is successful, return a yazl that
  focuses before (to the left) of the found element.
@@ -239,7 +239,8 @@ boolean predicate function of the current value becomes true (false).</p>
 <div class="spec">
 <p><tt>from_list(A::[A]) -&gt; <a href="#type-yazl">yazl</a>(A)</tt><br></p>
 </div><p>Constructor: create a yazl with focus before the first element
- of a list. If the list is empty, the empty yazl is returned.</p>
+ of a list. If the list is empty, the empty yazl is returned.
+ Equivalent to calling <code>from_list/2</code> with position argument <code>endl</code>.</p>
 
 <h3 class="function"><a name="from_list-2">from_list/2</a></h3>
 <div class="spec">
@@ -253,7 +254,10 @@ boolean predicate function of the current value becomes true (false).</p>
  It is an error to pass an integer less than 1,
  or greater than the length of the list,
  so passing 1 with the empty list is an error.
- If the list is empty, the empty yazl is returned.</p>
+ If the list is empty, the empty yazl is returned.
+ The position for the index is implicitly to the right,
+ so for a non-empty list,
+ passing <code>endl</code> is the same as passing 1.</p>
 
 <h3 class="function"><a name="get-2">get/2</a></h3>
 <div class="spec">
@@ -311,14 +315,14 @@ boolean predicate function of the current value becomes true (false).</p>
  of the list, return <code>endr</code> or <code>endl</code>.</p>
 
  Traditional function <code>next(...)</code>,
- is equivalent to the curried form <code>move( r, ... )</code>.
+ is equivalent to the curried form <code>move( rdir, ... )</code>.
  Traditional function <code>prev(...)</code>,
- is equivalent to the curried form <code>move( l, ... )</code>.
+ is equivalent to the curried form <code>move( ldir, ... )</code>.
  This is fast constant time O(1).</p>
 
 <h3 class="function"><a name="moves-3">moves/3</a></h3>
 <div class="spec">
-<p><tt>moves(D::<a href="#type-direction">direction()</a>, I::integer(), Z::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
+<p><tt>moves(Dir::<a href="#type-direction">direction()</a>, I::integer(), Z::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
 </div><p><p>Move the focus multiple steps to the right or left.
  If the yazl is empty, or the steps would
  overrun the beginning or end of the list,
@@ -329,7 +333,7 @@ boolean predicate function of the current value becomes true (false).</p>
  Negative offsets are converted to the equivalent positive
  offset in the other direction, which may return an
  unexpected opposite end value,
- e.g. <code>moves(r,-2,Z)</code> may return <code>endl</code>.</p>
+ e.g. <code>moves(rdir,-2,Z)</code> may return <code>endl</code>.</p>
 
 <h3 class="function"><a name="moveto-2">moveto/2</a></h3>
 <div class="spec">
@@ -356,7 +360,7 @@ boolean predicate function of the current value becomes true (false).</p>
 
 <h3 class="function"><a name="movewhile-3">movewhile/3</a></h3>
 <div class="spec">
-<p><tt>movewhile(D::<a href="#type-direction">direction()</a>, Pred::<a href="#type-predicate">predicate</a>(A), Z::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
+<p><tt>movewhile(Dir::<a href="#type-direction">direction()</a>, Pred::<a href="#type-predicate">predicate</a>(A), Z::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
 </div><p>Search for the first occurrence of a value
  that does not satisfy a boolean predicate function.
  If the search is successful, it returns a yazl that
@@ -437,6 +441,6 @@ boolean predicate function of the current value becomes true (false).</p>
 <hr>
 
 <div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://github.com/mike-french/zipperl"><img src="dragon.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
-<p><i>Generated by EDoc, Jul 2 2015, 22:00:07.</i></p>
+<p><i>Generated by EDoc, Jul 3 2015, 14:32:19.</i></p>
 </body>
 </html>
