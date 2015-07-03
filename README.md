@@ -7,8 +7,25 @@ An Erlang library for [zipper data structures](http://en.wikipedia.org/wiki/Zipp
 #### yazl 
 
 Yet Another Zipper List (yazl), pronounced '_yazzle_'.    
-A list with a cursor giving incremental bidirectional traversal and constant time read, write and insert.     
-The interface is expressed symmetrically for forward (right) and backward (left) operations.     
+A list with a current focus giving incremental bidirectional traversal and constant time read, write and insert.   
+
+The interface is expressed symmetrically for operations in the right direction `rdir` (forwards) and left direction `ldir`  (backwards). There are markers `endl` for the left end (before first) and `endr` for the right end (after last).
+
+For example, here is a 5-element list, with the focus at the beginning, as if created with `Yazl = from_list([1,2,3,4,5])`:
+
+![yazl endl position 1](http://rawgit.com/mike-french/zipperl/master/doc/yazl-pos1.png)
+
+Here is the same structure after moving the focus one step to the right, as if with a call to `move( rdir, Yazl )`:
+
+![yazl endl position 2](http://rawgit.com/mike-french/zipperl/master/doc/yazl-pos2.png)
+
+And another move to the right:
+
+![yazl endl position 3](http://rawgit.com/mike-french/zipperl/master/doc/yazl-pos3.png)
+
+Here is the empty yazl, as if created with `Yazl = new()` or `Yazl = from_list([])`:
+
+![empty yazl](http://rawgit.com/mike-french/zipperl/master/doc/yazl-empty.png)
 
 ## Build
 
@@ -26,7 +43,8 @@ or invoke PropEr explicitly from the shell:
 
 &nbsp; &nbsp; `erl -pz _build/test/lib/zipperl/ebin _build/test/lib/proper/ebin`    
 &nbsp; &nbsp; `> proper:check_specs( yazl ).`     
-&nbsp; &nbsp; `> proper:module( yazl_tests ).`
+&nbsp; &nbsp; `> proper:module( yazl_tests ).`    
+&nbsp; &nbsp; `> yazl_tests:performance_all().`
 
 ## Documentation
 
