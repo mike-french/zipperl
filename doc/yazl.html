@@ -57,7 +57,7 @@ or non-empty lists with the focus after the right end.</p>
 
  <p>Test if the yazl is empty with <code>is_empty</code>.
  Get the total length of the underlying list using <code>size</code>.
- Read the value at the current focus position using <code>get</code>.
+ Read the value at the current focus position using <code>get</code> or <code>gets</code>.
  Find the current focus location using <code>position</code>,
 which may return a 1-based integer index, or an ending marker.</p>
 
@@ -114,7 +114,7 @@ boolean predicate function of the current value becomes true (false).</p>
 
  <p>Incremental operations will incur a cost proportional
  to the distance from the focus to the target position:<br>
- <code>from_list/2, from_lists, moves, moveto, moveuntil,
+ <code>from_list/2, from_lists, gets, sets, moves, moveto, moveuntil,
  find, finds, inserts</code>.</p>
 
  Global operations will incur a cost proportional to the
@@ -156,7 +156,7 @@ boolean predicate function of the current value becomes true (false).</p>
 
 <h2><a name="index">Function Index</a></h2>
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#delete-2">delete/2</a></td><td>Delete the value to the right or left of the focus.</td></tr>
-<tr><td valign="top"><a href="#ending-1">ending/1</a></td><td>Type utility: Get the end in a specific direction.</td></tr>
+<tr><td valign="top"><a href="#ending-1">ending/1</a></td><td>Type utility: get the end in a specific direction.</td></tr>
 <tr><td valign="top"><a href="#find-3">find/3</a></td><td>Search for the first occurrence of a value.</td></tr>
 <tr><td valign="top"><a href="#finds-3">finds/3</a></td><td>Search for the first sequence of values
  that match a given non-empty list.</td></tr>
@@ -166,6 +166,8 @@ boolean predicate function of the current value becomes true (false).</p>
  beginning, at the end, or before the Ith element of a list.</td></tr>
 <tr><td valign="top"><a href="#from_lists-2">from_lists/2</a></td><td>Constructor: create a yazl with focus between two sublists.</td></tr>
 <tr><td valign="top"><a href="#get-2">get/2</a></td><td>Get the value of the element to the right or
+ left of the current focus.</td></tr>
+<tr><td valign="top"><a href="#gets-3">gets/3</a></td><td>Get the values of elements to the right or
  left of the current focus.</td></tr>
 <tr><td valign="top"><a href="#insert-3">insert/3</a></td><td>Insert a value to the right or left of the current focus,
  or at the beginning (prepend) or end (append) of the whole list.</td></tr>
@@ -190,6 +192,8 @@ boolean predicate function of the current value becomes true (false).</p>
 <tr><td valign="top"><a href="#reverse-1">reverse/1</a></td><td>Reverse the list maintaining focus.</td></tr>
 <tr><td valign="top"><a href="#set-3">set/3</a></td><td>Set the value of the element to the right or
  left of the current focus.</td></tr>
+<tr><td valign="top"><a href="#sets-3">sets/3</a></td><td>Set values of elements to the right or
+ left of the current focus.</td></tr>
 <tr><td valign="top"><a href="#size-1">size/1</a></td><td>Get the length of the underlying list.</td></tr>
 <tr><td valign="top"><a href="#to_list-1">to_list/1</a></td><td>Recover the underlying list.</td></tr>
 <tr><td valign="top"><a href="#to_lists-1">to_lists/1</a></td><td>Recover the underlying sublists before and after the focus.</td></tr>
@@ -209,7 +213,7 @@ boolean predicate function of the current value becomes true (false).</p>
 <h3 class="function"><a name="ending-1">ending/1</a></h3>
 <div class="spec">
 <p><tt>ending(X1::<a href="#type-direction">direction()</a>) -&gt; <a href="#type-ending">ending()</a></tt><br></p>
-</div><p>Type utility: Get the end in a specific direction.</p>
+</div><p>Type utility: get the end in a specific direction.</p>
 
 <h3 class="function"><a name="find-3">find/3</a></h3>
 <div class="spec">
@@ -278,6 +282,18 @@ boolean predicate function of the current value becomes true (false).</p>
  If the operation would overrun the begining or end
  of the list, return <code>endr</code> or <code>endl</code>.
  This is fast constant time O(1).</p>
+
+<h3 class="function"><a name="gets-3">gets/3</a></h3>
+<div class="spec">
+<p><tt>gets(Dir::<a href="#type-direction">direction()</a>, N::integer(), Z::<a href="#type-yazl">yazl</a>(A)) -&gt; [A]</tt><br></p>
+</div><p>Get the values of elements to the right or
+ left of the current focus.
+ Getting zero elements returns the empty list.
+ Getting a negative number of elements,
+ returns elements from the other direction.
+ If the operation would overrun the begining or end
+ of the list, return <code>endr</code> or <code>endl</code>.
+ Performance is proportional to the length of the requested sublist.</p>
 
 <h3 class="function"><a name="insert-3">insert/3</a></h3>
 <div class="spec">
@@ -424,6 +440,17 @@ boolean predicate function of the current value becomes true (false).</p>
  of the list, return <code>endr</code> or <code>endl</code>.
  This is fast constant time O(1).</p>
 
+<h3 class="function"><a name="sets-3">sets/3</a></h3>
+<div class="spec">
+<p><tt>sets(Dir::<a href="#type-direction">direction()</a>, A::[A], Z::<a href="#type-yazl">yazl</a>(A)) -&gt; <a href="#type-maybe">maybe</a>(<a href="#type-yazl">yazl</a>(A))</tt><br></p>
+</div><p>Set values of elements to the right or
+ left of the current focus.
+ Setting the empty list is a no-op,
+ and returns the original yazl.
+ If the operation would overrun the begining or end
+ of the list, return <code>endr</code> or <code>endl</code>.
+ Performance is proportional to the length of the requested sublist.</p>
+
 <h3 class="function"><a name="size-1">size/1</a></h3>
 <div class="spec">
 <p><tt>size(X1::<a href="#type-yazl">yazl</a>(term())) -&gt; non_neg_integer()</tt><br></p>
@@ -463,6 +490,6 @@ boolean predicate function of the current value becomes true (false).</p>
 <hr>
 
 <div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://github.com/mike-french/zipperl"><img src="dragon.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
-<p><i>Generated by EDoc, Jul 3 2015, 19:37:59.</i></p>
+<p><i>Generated by EDoc, Jul 4 2015, 20:13:17.</i></p>
 </body>
 </html>
