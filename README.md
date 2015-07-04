@@ -39,7 +39,7 @@ Tests are written using PropEr \[[home](http://proper.softlab.ntua.gr/)\] proper
 
 &nbsp; &nbsp; `rebar3 eunit`    
 
-or invoke PropEr explicitly from the shell:
+or invoke tests explicitly from the shell:
 
 &nbsp; &nbsp; `erl -pz _build/test/lib/zipperl/ebin _build/test/lib/proper/ebin`    
 &nbsp; &nbsp; `> proper:check_specs( yazl ).`     
@@ -55,6 +55,10 @@ There is a set of edoc already checked-in:
 but to regenerate use:
 
 &nbsp; &nbsp; `rebar3 edoc`
+
+## License
+
+The software is Copyright © 2015 Mike French, released under the permissive MIT open source license. See [LICENSE.txt](http://rawgit.com/mike-french/zipperl/master/LICENSE.txt) for more details.
 
 ## References
 
