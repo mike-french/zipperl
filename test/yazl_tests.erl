@@ -13,36 +13,38 @@
 
 -export( [performance_all/0] ).
    
--import( yazl,
-         [delete/2,
-          ending/1,
-          find/3,
-          finds/3,
-          foldl/4,
-          foldr/4,
-          from_list/1, from_list/2,
-          from_lists/2,
-          get/2,
-          insert/3, 
-          inserts/3,
-          is_yazl/1,
-          is_empty/1,
-          map/2,
-          move/2, 
-          moves/3,
-          moveto/2,
-          moveuntil/3,
-          movewhile/3,
-          new/0,
-          opposite/1,
-          position/2,
-          reverse/1,
-          set/3,
-          size/1,
-          to_list/1,
-          to_lists/1,
-          truncate/2
-         ] ).
+-import( yazl, [
+    delete/2,
+    ending/1,
+    find/3,
+    finds/3,
+    foldl/4,
+    foldr/4,
+    from_list/1, from_list/2,
+    from_lists/2,
+    get/2,
+    gets/3,
+    insert/3, 
+    inserts/3,
+    is_yazl/1,
+    is_empty/1,
+    map/2,
+    move/2, 
+    moves/3,
+    moveto/2,
+    moveuntil/3,
+    movewhile/3,
+    new/0,
+    opposite/1,
+    position/2,
+    reverse/1,
+    set/3,
+    sets/3,
+    size/1,
+    to_list/1,
+    to_lists/1,
+    truncate/2
+] ).
          
 % ---------------------------------------------------
 % Libraries
@@ -64,6 +66,7 @@ proper_spec_test_() ->
   {timeout, 300, 
     ?_assertEqual(
        [ % known errors
+           {yazl,gets,3},
            {yazl,from_list,2}
        ],
        proper:check_specs( yazl ) 
@@ -275,6 +278,37 @@ prop_get_set_insert_r() ->
      end
   ).
 
+% ---------------------------------------------------
+% -spec gets( direction(), integer(), yazl(A) ) -> [A].
+
+prop_gets_ends() ->
+  ?PRINT( "Cannot gets more elements than exist~n" ),
+  List = [1,2,3,4,5],
+  (endr =:= gets( rdir, 1, from_list(endr,List) )) and
+  (endr =:= gets( rdir, 2, from_list(5,List)    )) and
+  (endr =:= gets( rdir, 3, from_list(4,List)    )) and
+  (endl =:= gets( ldir, 1, from_list(endl,List) )) and
+  (endl =:= gets( ldir, 2, from_list(2,List)    )) and
+  (endl =:= gets( ldir, 3, from_list(3,List)    )).
+  
+prop_gets_r() ->
+  ?PRINT( "Simple gets elements to the right~n" ),
+  List = [1,2,3,4,5],
+  Z = from_list( 3, List ),
+  ([]      =:= gets( rdir, 0, Z )) and
+  ([3]     =:= gets( rdir, 1, Z )) and
+  ([3,4]   =:= gets( rdir, 2, Z )) and
+  ([3,4,5] =:= gets( rdir, 3, Z )).
+  
+prop_gets_l() ->
+  ?PRINT( "Simple gets elements to the left~n" ),
+  List = [1,2,3,4,5],
+  Z = from_list( 4, List ),
+  ([]      =:= gets( ldir, 0, Z )) and
+  ([3]     =:= gets( ldir, 1, Z )) and
+  ([2,3]   =:= gets( ldir, 2, Z )) and
+  ([1,2,3] =:= gets( ldir, 3, Z )).
+  
 % ---------------------------------------------------
 % move( direction(), yazl(A) ) -> maybe(yazl(A)).
 

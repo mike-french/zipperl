@@ -52,7 +52,7 @@
 %
 % Test if the yazl is empty with `is_empty'.
 % Get the total length of the underlying list using `size'.
-% Read the value at the current focus position using `get'.
+% Read the value at the current focus position using `get' or `gets'.
 % Find the current focus location using `position',
 % which may return a 1-based integer index, or an ending marker.
 %
@@ -109,7 +109,7 @@
 %
 % Incremental operations will incur a cost proportional
 % to the distance from the focus to the target position:<br/>
-% `from_list/2, from_lists, moves, moveto, moveuntil, 
+% `from_list/2, from_lists, gets, sets, moves, moveto, moveuntil, 
 % find, finds, inserts'.
 %
 % Global operations will incur a cost proportional to the
@@ -129,6 +129,7 @@
    from_list/1, from_list/2,
    from_lists/2,
    get/2,
+   gets/3,
    insert/3, 
    inserts/3,
    is_yazl/1,
@@ -144,6 +145,7 @@
    position/2,
    reverse/1,
    set/3,
+   sets/3,
    size/1,
    to_list/1,
    to_lists/1,
@@ -163,9 +165,6 @@
 
 % ===================================================
 % Types
-
-% WARNING: ending 'l' is ambiguous with '1', 
-%          could use 'rdir', 'ldir' ?
 
 % A yazl is a tuple of two lists.
 -type yazl(A) :: { [A], [A] }.
@@ -204,7 +203,7 @@ opposite( rdir ) -> ldir;
 opposite( ldir ) -> rdir.
 
 % ---------------------------------------------------
-% @doc Type utility: Get the end in a specific direction.
+% @doc Type utility: get the end in a specific direction.
 
 -spec ending( direction() ) -> ending().
 
@@ -354,6 +353,26 @@ get( rdir, { _,[]} ) -> endr;
 get( ldir, {[],_ } ) -> endl;
 get( rdir, {_,[H|_]} ) -> H;
 get( ldir, {[H|_],_} ) -> H.
+
+% ---------------------------------------------------
+% @doc Get the values of elements to the right or
+% left of the current focus.
+% Getting zero elements returns the empty list.
+% Getting a negative number of elements, 
+% returns elements from the other direction.
+% If the operation would overrun the begining or end
+% of the list, return `endr' or `endl'.
+% Performance is proportional to the length of the requested sublist.
+
+-spec gets( direction(), integer(), yazl(A) ) -> [A].
+
+gets(    _, 0, _     ) -> [];
+gets(  Dir, N, Z     ) when (N < 0) -> gets( opposite(Dir), -N, Z );
+gets( rdir, N, {_,R} ) when (N > length(R)) -> endr;
+gets( ldir, N, {L,_} ) when (N > length(L)) -> endl;
+gets(  Dir, 1, Z     ) -> [get( Dir, Z )];
+gets( rdir, N, {_,R} ) -> lists:sublist(R,N);
+gets( ldir, N, {L,_} ) -> lists:reverse( lists:sublist(L,N) ).
 
 % ==============================================================
 % Move focus
@@ -537,6 +556,26 @@ set( rdir, _, { _,[]} ) -> endr;
 set( ldir, _, {[], _} ) -> endl;
 set( rdir, V, {L,[_|RT]} ) -> { L,[V|RT]};
 set( ldir, V, {[_|LT],R} ) -> {[V|LT],R }.
+
+% ---------------------------------------------------
+% @doc Set values of elements to the right or
+% left of the current focus.
+% Setting the empty list is a no-op,
+% and returns the original yazl.
+% If the operation would overrun the begining or end
+% of the list, return `endr' or `endl'.
+% Performance is proportional to the length of the requested sublist.
+
+-spec sets( direction(), [A], yazl(A) ) -> maybe(yazl(A)).
+
+sets( ldir, [], Z     ) -> Z;
+sets( rdir, Vs, {_,R} ) when (length(Vs) > length(R)) -> endr;
+sets( ldir, Vs, {L,_} ) when (length(Vs) > length(L)) -> endl;
+sets(  Dir, [V], Z    ) -> set( Dir, V, Z );
+sets( rdir, Xs, {L,R} ) -> { L,
+                             Xs++lists:nthtail(length(Xs),R) };
+sets( ldir, Xs, {L,R} ) -> { lists:reverse(Xs)++
+                             lists:nthtail(length(Xs),L), R }.
 
 % ---------------------------------------------------
 % @doc Insert a value to the right or left of the current focus,
