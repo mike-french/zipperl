@@ -9,7 +9,7 @@
 %
 %--------------------------------------------------------------------
 
-% @doc YAZL '<i>yazzle</i>' (Yet Another Zipper List): 
+% @doc YAZL '<i>yazzle</i>' (Yet Another Zipper List):
 % A mutable list with a current focus position.
 %
 % A yazl supports operations normally found in
@@ -20,7 +20,7 @@
 % The yazl also provides global operations and index-based
 % random access, typically with an O(n) performance penalty.
 %
-% The focus may be between two elements of the list, or at one of the ends. 
+% The focus may be between two elements of the list, or at one of the ends.
 % The descriptions used here are slightly different from a true zipper,
 % because the focus is between elements, not at a current element
 % [<i>Functional Pearl: The Zipper</i>, Gérard Huet, 1997].
@@ -31,13 +31,13 @@
 %
 % The position of the current element is either a 1-based positive integer,
 % or an end marker: `endl', for the beginning, or `endr' for the end.
-% The current value is after (to the right of) the focus, if it exists. 
+% The current value is after (to the right of) the focus, if it exists.
 % There is no current value for empty lists,
 % or non-empty lists with the focus after the right end.
 %
 % Functions on single values and lists of values are not overloaded,
 % they are given distinct names (<i>e.g.</i>`insert'/`inserts'),
-% so that yazls can have lists as regular elements 
+% so that yazls can have lists as regular elements
 % (<i>i.e.</i> lists of lists).
 %
 % == Usage ==
@@ -60,14 +60,14 @@
 %
 % Movement functions change the focus position,
 % but do not change the content of the list.
-% Movements return special flags `endl' or `endr' 
+% Movements return special flags `endl' or `endr'
 % if an operation would take the focus
 % beyond the beginning or end of the list.
 % Client code can implement cyclic behaviour by using
 % these flags in conjunction with the `moveto' function.
 %
-% Move the focus with `move', `moves', `moveto'. 
-% The `move' function changes focus to the next or previous elements. 
+% Move the focus with `move', `moves', `moveto'.
+% The `move' function changes focus to the next or previous elements.
 % The `moves' function jumps multiple steps relative to the current focus.
 % The `moveto' function jump to absolute positions based on
 % a specific index, or the beginning or end of the list.
@@ -76,10 +76,10 @@
 %
 % Move the focus by searching with `find', `finds',
 % `moveuntil' and `movewhile'.
-% The `find' function will search for the next or previous 
-% occurrence of a value. The `finds' function searches for the 
-% next or previous occurrence of a sequence of values. 
-% The `moveuntil' (`movewhile') functions search until a 
+% The `find' function will search for the next or previous
+% occurrence of a value. The `finds' function searches for the
+% next or previous occurrence of a sequence of values.
+% The `moveuntil' (`movewhile') functions search until a
 % boolean predicate function of the current value becomes true (false).
 %
 % === Update ===
@@ -98,18 +98,18 @@
 %
 % === Function Application ===
 %
-% Apply a <i>map</i> function while leaving the focus unchanged. 
+% Apply a <i>map</i> function while leaving the focus unchanged.
 %
 % == Efficiency ==
 %
 % The implementation is efficient constant time, O(1):
 % for local operations at the focus: <br/>
-% `new, from_list/1, move, get, set, insert, 
+% `new, from_list/1, move, get, set, insert,
 %  delete, reverse, truncate'.
 %
 % Incremental operations will incur a cost proportional
 % to the distance from the focus to the target position:<br/>
-% `from_list/2, from_lists, gets, sets, moves, moveto, moveuntil, 
+% `from_list/2, from_lists, gets, sets, moves, moveto, moveuntil,
 % find, finds, inserts'.
 %
 % Global operations will incur a cost proportional to the
@@ -130,12 +130,12 @@
    from_lists/2,
    get/2,
    gets/3,
-   insert/3, 
+   insert/3,
    inserts/3,
    is_yazl/1,
    is_empty/1,
    map/2,
-   move/2, 
+   move/2,
    moves/3,
    moveto/2,
    moveuntil/3,
@@ -151,7 +151,7 @@
    to_lists/1,
    truncate/2
 ] ).
-         
+
 -export_types( [
    yazl/1,
    empty_yazl/0,
@@ -160,7 +160,7 @@
    index/0,
    maybe/1,
    position/0,
-   predicate/1 
+   predicate/1
 ] ).
 
 % ===================================================
@@ -173,7 +173,7 @@
 -type empty_yazl() :: { [], [] }.
 
 % Directions are to the left (beginning) or to the right (end) of the list.
--type direction() :: ldir | rdir.    
+-type direction() :: ldir | rdir.
 
 % A position before the left (beginning) or past the right (end) of the list.
 -type ending() :: endl | endr.
@@ -221,7 +221,7 @@ ending( ldir ) -> endl.
 new() -> { [], [] }.
 
 % ---------------------------------------------------
-% @doc Constructor: create a yazl with focus before the first element 
+% @doc Constructor: create a yazl with focus before the first element
 % of a list. If the list is empty, the empty yazl is returned.
 % Equivalent to calling `from_list/2' with position argument `endl'.
 
@@ -230,7 +230,7 @@ new() -> { [], [] }.
 from_list( List ) when is_list(List) -> { [], List }.
 
 % ---------------------------------------------------
-% @doc Constructor: create a yazl with focus at the 
+% @doc Constructor: create a yazl with focus at the
 % beginning, at the end, or before the Ith element of a list.
 % The index is 1-based, so the first element is 1,
 % and the last index is equal to the length of the list.
@@ -241,22 +241,22 @@ from_list( List ) when is_list(List) -> { [], List }.
 % so passing 1 with the empty list is an error.
 % If the list is empty, the empty yazl is returned.
 % The position for the index is implicitly to the right,
-% so for a non-empty list, 
+% so for a non-empty list,
 % passing `endl' is the same as passing 1.
 
 -spec from_list( position(), [A] ) -> yazl(A).
 
-from_list( endl, List ) when is_list(List) -> 
+from_list( endl, List ) when is_list(List) ->
   { [], List };
 from_list( endr, List ) when is_list(List) ->
   { lists:reverse(List), [] };
-from_list(    I, List ) when is_list(List) and is_integer(I) 
-                         and (I >= 1) and (I =< length(List)) -> 
+from_list(    I, List ) when is_list(List) and is_integer(I)
+                         and (I >= 1) and (I =< length(List)) ->
   { L, R } = lists:split( I-1, List ),
   { lists:reverse(L), R }.
-  
+
 % ---------------------------------------------------
-% @doc Constructor: create a yazl with focus between two sublists. 
+% @doc Constructor: create a yazl with focus between two sublists.
 % The underlying list will be the concatenation of the two lists.
 % The focus will be after (right of) the last element of the first list,
 % and before (left of) the first element of the second list.
@@ -264,7 +264,7 @@ from_list(    I, List ) when is_list(List) and is_integer(I)
 
 -spec from_lists( [A], [A] ) -> yazl(A).
 
-from_lists( L, R ) when is_list(L) and is_list(R) -> 
+from_lists( L, R ) when is_list(L) and is_list(R) ->
   { lists:reverse(L), R }.
 
 % ==============================================================
@@ -299,12 +299,12 @@ size( {L,R} ) -> length(L) + length(R).
 % @doc Get the one-based index of the position to
 % the right or left of the current focus.
 % Indices are 1-based.
-% If the yazl is empty, or focus is at the beginning of 
+% If the yazl is empty, or focus is at the beginning of
 % a non-empty list, then the left index is `endl'.
-% If the yazl is at the end of a non-empty list, 
+% If the yazl is at the end of a non-empty list,
 % then the right index is `endr'.
 % The performance is proportional to the position in the list.
-% If the focus is at `endl' it is O(1), 
+% If the focus is at `endl' it is O(1),
 % but if the focus is at the last element, it is O(n).
 
 -spec position( direction(), yazl(_) ) -> position().
@@ -319,7 +319,7 @@ position( rdir, { L,_ } ) -> length(L) + 1.
 % @doc Recover the underlying list.
 % If the yazl is empty, the result is the empty list.
 % The cost is proportional to the position in the list.
-% If the focus is at `endl' it is O(1), 
+% If the focus is at `endl' it is O(1),
 % but if the focus is at `endr' it is O(n).
 
 -spec to_list( yazl(A) ) -> [A].
@@ -332,7 +332,7 @@ to_list( { L,R } ) -> lists:reverse( L, R ).
 % If the yazl is empty, the result is two empty lists.
 % The underlying list is equal to the concatenation of the two lists.
 % The cost is proportional to the position in the list.
-% If the focus is at `endl' it is O(1), 
+% If the focus is at `endl' it is O(1),
 % but if the focus is at `endr' it is O(n).
 
 -spec to_lists( yazl(A) ) -> { [A], [A] }.
@@ -358,7 +358,7 @@ get( ldir, {[H|_],_} ) -> H.
 % @doc Get the values of elements to the right or
 % left of the current focus.
 % Getting zero elements returns the empty list.
-% Getting a negative number of elements, 
+% Getting a negative number of elements,
 % returns elements from the other direction.
 % If the operation would overrun the begining or end
 % of the list, return `endr' or `endl'.
@@ -382,9 +382,9 @@ gets( ldir, N, {L,_} ) -> lists:reverse( lists:sublist(L,N) ).
 % If the operation would overrun the begining or end
 % of the list, return `endr' or `endl'.
 %
-% Traditional function `next(...)', 
+% Traditional function `next(...)',
 % is equivalent to the curried form `move( rdir, ... )'.
-% Traditional function `prev(...)', 
+% Traditional function `prev(...)',
 % is equivalent to the curried form `move( ldir, ... )'.
 % This is fast constant time O(1).
 
@@ -398,7 +398,7 @@ move( ldir, {[HL|TL],R } ) -> { TL, [HL|R] }.
 % ---------------------------------------------------
 % @doc Move the focus multiple steps to the right or left.
 % If the yazl is empty, or the steps would
-% overrun the beginning or end of the list, 
+% overrun the beginning or end of the list,
 % then return `endr' or `endl'.
 %
 % Moving a zero offset leaves the yazl unchanged.
@@ -415,10 +415,10 @@ moves(  Dir, 1,  Z    ) -> move( Dir, Z );
 moves(  Dir, I,  Z    ) when (I < 0) -> moves( opposite(Dir), -I, Z );
 moves( rdir, I, {_,R} ) when (I > length(R)) -> endr;
 moves( ldir, I, {L,_} ) when (I > length(L)) -> endl;
-moves( rdir, I, {L,R} ) -> 
+moves( rdir, I, {L,R} ) ->
   { RH, RT } = lists:split( I, R ),
   { lists:reverse(RH,L), RT };
-moves( ldir, I, {L,R} ) -> 
+moves( ldir, I, {L,R} ) ->
   { LH, LT } = lists:split( I, L ),
   { LT, lists:reverse(LH,R) }.
 
@@ -439,9 +439,9 @@ moveto( endr,   { L,R } ) -> { lists:reverse(R,L), [] };
 moveto( endl,   { L,R } ) -> { [], lists:reverse(L,R) };
 moveto( I,    Z={ _,_ } ) when is_integer(I) ->
   Len = yazl:size( Z ),
-  IR  = case position(rdir,Z) of 
-          endr   -> Len+1; 
-          IndexR -> IndexR 
+  IR  = case position(rdir,Z) of
+          endr   -> Len+1;
+          IndexR -> IndexR
         end,
   case I of
     I when (I <  1  ) -> endl;
@@ -450,11 +450,11 @@ moveto( I,    Z={ _,_ } ) when is_integer(I) ->
     I when (I <  IR ) -> moves( ldir, IR-I, Z );
     I when (I >  IR ) -> moves( rdir, I-IR, Z )
   end.
-  
+
 % ---------------------------------------------------
-% @doc Search for the first occurrence of a value. 
+% @doc Search for the first occurrence of a value.
 % If the search is successful, return a yazl that
-% focuses before (right search) or after (left search) 
+% focuses before (right search) or after (left search)
 % the found element.
 % If the search does not find the value,
 % then it returns `endr' or `endl'.
@@ -464,21 +464,21 @@ moveto( I,    Z={ _,_ } ) when is_integer(I) ->
 find( rdir, _, { _,[]} ) -> endr;
 find( ldir, _, {[],_ } ) -> endl;
 find( rdir, Val, Z={ _,[Val|_] } ) -> Z;
-find( ldir, Val, Z={ [Val|_],_ } ) -> Z; 
+find( ldir, Val, Z={ [Val|_],_ } ) -> Z;
 find(  Dir, Val, Z ) -> find( Dir, Val, move(Dir,Z) ).
 
 % ---------------------------------------------------
-% @doc Search for the first sequence of values  
+% @doc Search for the first sequence of values
 % that match a given non-empty list.
 % If the search is successful, return a yazl that
-% focuses before (right search) or after (left search) 
+% focuses before (right search) or after (left search)
 % the found list of elements.
 % If the search does not find the value,
 % then it returns `endr' or `endl'.
 %
 % A search for an empty list is a no-op
 % that returns the original yazl
-% (following the convention of `lists:prefix' 
+% (following the convention of `lists:prefix'
 %  that the empty list is a prefix of all lists).
 
 -spec finds( direction(), [A], yazl(A) ) -> maybe(yazl(A)).
@@ -487,28 +487,28 @@ finds( _,           [], Z ) -> Z;
 finds( rdir, Vs=[V|VT], Z ) ->
   case find(rdir,V,Z) of
     endr -> endr;
-    Y={ _, [V|RT] } -> 
+    Y={ _, [V|RT] } ->
       case lists:prefix(VT,RT) of
         true  -> Y;
-        false -> finds( rdir, Vs, move(rdir,Y) ) 
+        false -> finds( rdir, Vs, move(rdir,Y) )
       end
   end;
-finds( ldir, Vs, Z ) -> 
+finds( ldir, Vs, Z ) ->
   case finds( rdir, lists:reverse(Vs), reverse(Z) ) of
     endr -> endl;
     Y    -> reverse( Y )
   end.
-  
+
 % ---------------------------------------------------
 % @doc Search for the first occurrence of a value
 % that satisfies a boolean predicate function.
-% If the search is successful, it returns a yazl 
+% If the search is successful, it returns a yazl
 % that focuses before the found element.
 % If the search does not find the value,
 % then it returns `endr' or `endl'.
 %
-% Note this is equivalent to `movewhile' 
-% using the negation of the predicate. 
+% Note this is equivalent to `movewhile'
+% using the negation of the predicate.
 
 -spec moveuntil( direction(), predicate(A), yazl(A) ) -> maybe(yazl(A)).
 
@@ -524,7 +524,7 @@ moveuntil( ldir, Pred, Z={[LH|_],_} ) ->
     true  -> Z;
     false -> moveuntil( ldir, Pred, move(ldir,Z) )
   end.
-  
+
 % ---------------------------------------------------
 % @doc Search for the first occurrence of a value
 % that does not satisfy a boolean predicate function.
@@ -532,12 +532,12 @@ moveuntil( ldir, Pred, Z={[LH|_],_} ) ->
 % focuses before the found element.
 % If the search does not find the value,
 % then it returns `endr' or `endl'.
-% Note this is equivalent to `moveuntil' 
-% using the negation of the predicate. 
+% Note this is equivalent to `moveuntil'
+% using the negation of the predicate.
 
 -spec movewhile( direction(), predicate(A), yazl(A) ) -> maybe(yazl(A)).
 
-movewhile( Dir, Pred, Z ) -> 
+movewhile( Dir, Pred, Z ) ->
   moveuntil( Dir, fun(A) -> not Pred(A) end, Z ).
 
 % ==============================================================
@@ -568,7 +568,7 @@ set( ldir, V, {[_|LT],R} ) -> {[V|LT],R }.
 
 -spec sets( direction(), [A], yazl(A) ) -> maybe(yazl(A)).
 
-sets( ldir, [], Z     ) -> Z;
+sets( ldir, [],  Z    ) -> Z;
 sets( rdir, Vs, {_,R} ) when (length(Vs) > length(R)) -> endr;
 sets( ldir, Vs, {L,_} ) when (length(Vs) > length(L)) -> endl;
 sets(  Dir, [V], Z    ) -> set( Dir, V, Z );
@@ -580,8 +580,8 @@ sets( ldir, Xs, {L,R} ) -> { lists:reverse(Xs)++
 % ---------------------------------------------------
 % @doc Insert a value to the right or left of the current focus,
 % or at the beginning (prepend) or end (append) of the whole list.
-% Whether it is to the left or right 
-% does not affect the final content of the list, 
+% Whether it is to the left or right
+% does not affect the final content of the list,
 % just the final position of the focus
 % relative to the inserted sequence.
 % This is fast constant time O(1).
@@ -595,15 +595,15 @@ insert( endr, V, {L,R} ) -> { L,      R++[V] }.
 
 % ---------------------------------------------------
 % @doc Insert a sequence of values to the left or right
-% of the current focus, or at the beginning (prepend) 
-% or end (append) of the whole list. 
-% Whether it is inserted to the left or right 
-% does not affect the final content of the list, 
+% of the current focus, or at the beginning (prepend)
+% or end (append) of the whole list.
+% Whether it is inserted to the left or right
+% does not affect the final content of the list,
 % just the final position of the focus
 % relative to the inserted sequence.
 % Inserting an empty sequence does not change the underlying list.
 
--spec inserts( direction(), [A], yazl(A) ) -> yazl(A).
+-spec inserts( direction() | ending(), [A], yazl(A) ) -> yazl(A).
 
 inserts(    _, [],Z={_,_} ) ->   Z;
 inserts( rdir, Vs,  {L,R} ) -> { L,                    Vs++R };
@@ -627,9 +627,9 @@ delete( ldir, {[_|LT],R} ) -> {LT,R }.
 % ---------------------------------------------------
 % @doc Delete the indicated sublist.
 % If the yazl is empty, return the empty yazl.
-% For right, the focus will be positioned after the 
+% For right, the focus will be positioned after the
 % last element of the left sublist.
-% For left, the focus will be positioned before the 
+% For left, the focus will be positioned before the
 % first element of the right sublist.
 % This is fast constant time O(1).
 
@@ -643,7 +643,8 @@ truncate( ldir, {_,R} ) -> {[],R }.
 % If the yazl is empty, the result is the empty yazl.
 % If the yazl is not empty, the current values to the
 % right and left will be switched
-% This is fast constant time O(1), compared to O(n) for ordinary list.
+% This is fast constant time O(1),
+% compared to O(n) for ordinary list.
 
 -spec reverse( yazl(A) ) -> yazl(A).
 
