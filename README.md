@@ -13,19 +13,19 @@ The interface is expressed symmetrically for operations in the right direction `
 
 For example, here is a 5-element list, with the focus at the beginning, as if created with `Yazl = from_list([1,2,3,4,5])`:
 
-![yazl endl position 1](http://rawgit.com/mike-french/zipperl/master/doc/yazl-pos1.png)
+![yazl endl position 1](https://raw.githubusercontent.com/mike-french/zipperl/master/doc/yazl-pos1.png)
 
 Here is the same structure after moving the focus one step to the right, as if with a call to `move( rdir, Yazl )`:
 
-![yazl endl position 2](http://rawgit.com/mike-french/zipperl/master/doc/yazl-pos2.png)
+![yazl endl position 2](https://raw.githubusercontent.com/mike-french/zipperl/master/doc/yazl-pos2.png)
 
 And another move to the right:
 
-![yazl endl position 3](http://rawgit.com/mike-french/zipperl/master/doc/yazl-pos3.png)
+![yazl endl position 3](https://raw.githubusercontent.com/mike-french/zipperl/master/doc/yazl-pos3.png)
 
 Here is the empty yazl, as if created with `Yazl = new()` or `Yazl = from_list([])`:
 
-![empty yazl](http://rawgit.com/mike-french/zipperl/master/doc/yazl-empty.png)
+![empty yazl](https://raw.githubusercontent.com/mike-french/zipperl/master/doc/yazl-empty.png)
 
 ## Build
 
