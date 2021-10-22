@@ -364,7 +364,7 @@ get( ldir, {[H|_],_} ) -> H.
 % of the list, return `endr' or `endl'.
 % Performance is proportional to the length of the requested sublist.
 
--spec gets( direction(), integer(), yazl(A) ) -> [A].
+-spec gets( direction(), integer(), yazl(A) ) -> maybe([A]).
 
 gets(    _, 0, _     ) -> [];
 gets(  Dir, N, Z     ) when (N < 0) -> gets( opposite(Dir), -N, Z );
@@ -584,7 +584,7 @@ sets( ldir, Xs, {L,R} ) -> { lists:reverse(Xs)++
 % does not affect the final content of the list,
 % just the final position of the focus
 % relative to the inserted sequence.
-% This is fast constant time O(1).
+% This is fast constant time O(1) at the focus.
 
 -spec insert( direction() | ending(), A, yazl(A) ) -> yazl(A).
 
